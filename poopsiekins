@@ -1,0 +1,2817 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cleo & Keona — Private Social Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Fredoka', 'sans-serif'],
+          },
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Custom scrollbar & utility animations */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.55); }
+
+    @keyframes floatPet {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(1.5deg); }
+    }
+    .pet-float { animation: floatPet 3s ease-in-out infinite; }
+
+    @keyframes coinSpin {
+      0% { transform: rotateY(0deg) scale(1); }
+      50% { transform: rotateY(900deg) scale(1.25); }
+      100% { transform: rotateY(1800deg) scale(1); }
+    }
+    .coin-anim { animation: coinSpin 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
+
+    @keyframes gachaBurst {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .gacha-reveal { animation: gachaBurst 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+    .chat-bg-default-dark {
+      background-color: #0b141a;
+      background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+    .chat-bg-default-light {
+      background-color: #efeae2;
+      background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+    .chat-bg-aurora {
+      background: linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #0f172a 100%);
+    }
+    .chat-bg-sakura {
+      background: linear-gradient(135deg, #fdf2f8 0%, #fbcfe8 50%, #f5d0fe 100%);
+    }
+    .chat-bg-ocean {
+      background: linear-gradient(135deg, #042f2e 0%, #0f172a 60%, #172554 100%);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white overflow-hidden h-screen w-screen">
+
+  <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- ==================== 1. ROLE LOGIN & PRIVACY LOCK SCREEN ==================== -->
+  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-4">
+    <div class="max-w-md w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-white">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 to-indigo-500 shadow-lg mb-4">
+          <i class="fa-solid fa-comments text-2xl text-white"></i>
+        </div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold tracking-tight">Cleo & Keona</h1>
+        <p class="text-slate-400 text-sm mt-1">Private Two-Person World • End-to-End Role Isolation</p>
+      </div>
+
+      <!-- Profile Selection Cards -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <button id="select-cleo-btn" onclick="selectLoginRole('Cleo')" class="role-card group relative flex flex-col items-center p-4 rounded-2xl border-2 border-slate-800 bg-slate-800/50 hover:border-indigo-500 transition-all">
+          <img id="login-avatar-Cleo" src="https://placehold.co/120x120/6366f1/ffffff?text=Cleo" alt="Cleo" class="w-16 h-16 rounded-full object-cover border-2 border-indigo-400 mb-2 shadow" />
+          <span class="font-bold text-base">Cleo</span>
+          <span id="login-lock-badge-Cleo" class="text-[11px] text-slate-400 mt-0.5"><i class="fa-solid fa-lock-open mr-1"></i>Ready</span>
+        </button>
+
+        <button id="select-keona-btn" onclick="selectLoginRole('Keona')" class="role-card group relative flex flex-col items-center p-4 rounded-2xl border-2 border-slate-800 bg-slate-800/50 hover:border-pink-500 transition-all">
+          <img id="login-avatar-Keona" src="https://placehold.co/120x120/ec4899/ffffff?text=Keona" alt="Keona" class="w-16 h-16 rounded-full object-cover border-2 border-pink-400 mb-2 shadow" />
+          <span class="font-bold text-base">Keona</span>
+          <span id="login-lock-badge-Keona" class="text-[11px] text-slate-400 mt-0.5"><i class="fa-solid fa-lock-open mr-1"></i>Ready</span>
+        </button>
+      </div>
+
+      <!-- PIN Gate Box -->
+      <div id="pin-entry-box" class="hidden space-y-4 bg-slate-950/70 p-4 rounded-2xl border border-slate-800">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-indigo-300" id="pin-prompt-title">Enter Cleo's 4-Digit PIN</span>
+          <span class="text-xs text-slate-400" id="pin-hint-text">Default PIN: 0000 (Change in Profile)</span>
+        </div>
+        <input id="login-pin-input" type="password" maxlength="6" placeholder="••••" class="w-full text-center tracking-[0.5em] text-xl font-bold bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 focus:outline-none focus:border-indigo-500 text-white" />
+        <button onclick="confirmRoleLogin()" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 font-semibold text-white shadow-lg transition">
+          Unlock & Enter World
+        </button>
+      </div>
+
+      <p class="text-[11px] text-center text-slate-500 mt-5">
+        <i class="fa-solid fa-shield-halved mr-1"></i>Each profile is PIN-protected so neither can access the other's private session, drafts, or receipts settings.
+      </p>
+    </div>
+  </div>
+
+  <!-- ==================== 2. MAIN APP SHELL ==================== -->
+  <div id="app-shell" class="hidden h-full w-full flex flex-col overflow-hidden">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="h-16 shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-5 flex items-center justify-between z-30 shadow-sm">
+      <div class="flex items-center gap-3">
+        <!-- 3 LINES HAMBURGER BUTTON -->
+        <button onclick="toggleDrawer(true)" title="Open Hub Menu" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-slate-700 dark:text-slate-200 transition active:scale-95">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+
+        <!-- Partner Info Header (Click to View Partner Bio & Profile) -->
+        <div onclick="openPartnerProfileModal()" class="flex items-center gap-2.5 cursor-pointer group">
+          <div class="relative">
+            <img id="header-partner-avatar" src="https://placehold.co/80x80/ec4899/ffffff?text=K" alt="Partner" class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500/60 group-hover:scale-105 transition" />
+            <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="header-partner-name" class="font-bold text-sm sm:text-base leading-tight">Keona</h2>
+              <!-- Live Streak Pill -->
+              <button onclick="event.stopPropagation(); switchView('pet')" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition">
+                <span>🔥</span><span id="header-streak-count">0</span>
+              </button>
+            </div>
+            <p id="header-partner-bio-preview" class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[140px] sm:max-w-[260px]">Tap to view bio & status</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Action Controls -->
+      <div class="flex items-center gap-1.5 sm:gap-2.5">
+        <!-- Token Wallet Pill -->
+        <button onclick="switchView('gacha')" title="Gacha & Tokens" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 text-xs font-bold hover:bg-indigo-500/30 transition">
+          <i class="fa-solid fa-coins text-amber-400"></i>
+          <span id="header-token-count">0</span>
+        </button>
+
+        <!-- Voice & Video Call Buttons -->
+        <button onclick="startCall('voice')" title="Voice Call" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 transition">
+          <i class="fa-solid fa-phone"></i>
+        </button>
+        <button onclick="startCall('video')" title="Video Call" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400 transition">
+          <i class="fa-solid fa-video"></i>
+        </button>
+
+        <!-- Search Chat Toggle -->
+        <button onclick="toggleChatSearch()" title="Search Messages" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <!-- My Profile & Settings Button -->
+        <button onclick="openMyProfileModal()" title="My Profile & Settings" class="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:ring-2 ring-indigo-500 transition">
+          <img id="header-my-avatar" src="https://placehold.co/64x64/6366f1/ffffff?text=C" alt="Me" class="w-7 h-7 rounded-full object-cover" />
+          <span id="header-my-name" class="hidden md:inline text-xs font-semibold">Cleo</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================== 3-LINES NAVIGATION DRAWER ==================== -->
+    <div id="nav-drawer-backdrop" onclick="toggleDrawer(false)" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 hidden transition-opacity"></div>
+    <aside id="nav-drawer" class="fixed top-0 left-0 bottom-0 w-72 sm:w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white font-bold">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-base">Hub Menu</h3>
+            <p class="text-[11px] text-slate-500">Logged in as <span id="drawer-role-label" class="font-bold text-indigo-500">Cleo</span></p>
+          </div>
+        </div>
+        <button onclick="toggleDrawer(false)" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-sm font-medium">
+        <button onclick="switchView('chat')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">
+          <i class="fa-solid fa-comment-dots w-5 text-center"></i> Private Chat & Calls
+        </button>
+
+        <div class="pt-2 pb-1 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Play & Arcade</div>
+        <button onclick="switchView('games')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-gamepad w-5 text-center text-emerald-500"></i> Online Games (2P)
+        </button>
+        <button onclick="switchView('solo')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-dice w-5 text-center text-amber-500"></i> Coin Flip & Spin Wheel
+        </button>
+
+        <div class="pt-2 pb-1 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Pet, Gacha & Bets</div>
+        <button onclick="switchView('pet')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-paw w-5 text-center text-pink-500"></i> Streak Pet & Care
+        </button>
+        <button onclick="switchView('gacha')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-shirt w-5 text-center text-purple-500"></i> Gacha Outfits (2,510)
+        </button>
+        <button onclick="switchView('polymarket')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-chart-line w-5 text-center text-cyan-500"></i> Polymarket Bets
+        </button>
+
+        <div class="pt-2 pb-1 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Shared Workspace</div>
+        <button onclick="switchView('reminders')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-list-check w-5 text-center text-blue-500"></i> Joint Reminders
+        </button>
+        <button onclick="switchView('calendar')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-calendar-days w-5 text-center text-rose-500"></i> Shared Calendar
+        </button>
+        <button onclick="switchView('canvas')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-paintbrush w-5 text-center text-orange-500"></i> Collaborative Canvas
+        </button>
+        <button onclick="switchView('saved-drawings')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-images w-5 text-center text-teal-500"></i> Saved Drawings
+        </button>
+
+        <div class="pt-2 pb-1 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Shortcuts & Info</div>
+        <button onclick="switchView('apps')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-rocket w-5 text-center text-indigo-500"></i> Hop to Apps
+        </button>
+        <button onclick="switchView('rules')" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-book-open w-5 text-center text-amber-400"></i> All Rules
+        </button>
+      </nav>
+
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+        <button onclick="toggleTheme()" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold flex items-center justify-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+          <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i>
+          <span id="theme-label">Light Mode</span>
+        </button>
+        <button onclick="logoutRole()" class="py-2 px-3 rounded-xl bg-rose-500/15 text-rose-500 text-xs font-semibold hover:bg-rose-500/25 transition">
+          <i class="fa-solid fa-right-from-bracket"></i> Switch
+        </button>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <main class="flex-1 relative overflow-hidden flex flex-col">
+
+      <!-- ==================== VIEW 1: MESSENGER & CALLS ==================== -->
+      <section id="view-chat" class="view-section h-full flex flex-col overflow-hidden">
+        <!-- Search & Refresh Bar (Collapsible) -->
+        <div id="chat-search-bar" class="hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center gap-2">
+          <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+          <input id="chat-search-input" oninput="renderMessages()" type="text" placeholder="Search chat history..." class="flex-1 bg-transparent text-sm focus:outline-none" />
+          <button onclick="refreshChatHistory()" title="Refresh Chat History" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold hover:bg-indigo-500 hover:text-white transition">
+            <i class="fa-solid fa-rotate mr-1"></i>Refresh
+          </button>
+          <button onclick="openCallHistoryModal()" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+            <i class="fa-solid fa-phone-volume mr-1"></i>Call Logs
+          </button>
+          <button onclick="toggleChatSearch()" class="p-1 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Pinned Message Banner -->
+        <div id="pinned-message-banner" class="hidden bg-indigo-50 dark:bg-indigo-950/80 border-b border-indigo-200 dark:border-indigo-800/70 px-4 py-2 flex items-center justify-between gap-3">
+          <div onclick="scrollToPinnedMessage()" class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+            <i class="fa-solid fa-thumbtack text-indigo-500 text-xs rotate-45"></i>
+            <div class="truncate">
+              <span class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase block">Pinned Message</span>
+              <p id="pinned-message-text" class="text-xs truncate text-slate-700 dark:text-slate-200"></p>
+            </div>
+          </div>
+          <button onclick="unpinMessage()" title="Unpin" class="text-xs text-slate-400 hover:text-rose-500 p-1"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Chat Messages Stream -->
+        <div id="chat-messages-container" class="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 chat-bg-default-dark bg-cover bg-center">
+          <!-- Messages dynamically rendered here -->
+        </div>
+
+        <!-- Editing Banner (when editing a sent message) -->
+        <div id="editing-banner" class="hidden bg-amber-500/15 border-t border-amber-500/30 px-4 py-1.5 flex items-center justify-between text-xs">
+          <span class="text-amber-600 dark:text-amber-300 font-semibold"><i class="fa-solid fa-pen mr-1.5"></i>Editing your message...</span>
+          <button onclick="cancelEditMessage()" class="text-slate-500 hover:text-rose-500 font-bold">Cancel</button>
+        </div>
+
+        <!-- Stickers & Quick-Words Tray -->
+        <div id="sticker-word-tray" class="hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-3 max-h-60 overflow-y-auto">
+          <div class="flex items-center justify-between mb-2.5 border-b border-slate-200 dark:border-slate-800 pb-2">
+            <div class="flex gap-2">
+              <button id="tab-btn-stickers" onclick="switchTrayTab('stickers')" class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+                <i class="fa-solid fa-face-smile mr-1"></i>Custom Stickers
+              </button>
+              <button id="tab-btn-words" onclick="switchTrayTab('words')" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <i class="fa-solid fa-font mr-1"></i>Word Stickers
+              </button>
+            </div>
+            <button onclick="toggleTray()" class="text-slate-400 hover:text-slate-600 px-2"><i class="fa-solid fa-chevron-down"></i></button>
+          </div>
+
+          <!-- Stickers Sub-tab -->
+          <div id="tray-content-stickers" class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-500">Upload image or short video to create a sticker:</span>
+              <label class="cursor-pointer px-2.5 py-1 rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-xs font-semibold">
+                <i class="fa-solid fa-plus mr-1"></i>New Sticker
+                <input type="file" accept="image/*,video/*" onchange="handleStickerUpload(event)" class="hidden" />
+              </label>
+            </div>
+            <div id="stickers-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 pt-1"></div>
+          </div>
+
+          <!-- Quick-Word Builder Sub-tab -->
+          <div id="tray-content-words" class="hidden space-y-2.5">
+            <div class="flex gap-2">
+              <input id="new-quick-word-input" type="text" placeholder="Add a word (e.g. where, are, you)..." class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 ring-indigo-500" />
+              <button onclick="addQuickWord()" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500">Add Word</button>
+            </div>
+            <p class="text-[11px] text-slate-400">Tap words below to paste them directly into your message box:</p>
+            <div id="quick-words-list" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+
+        <!-- Chat Composer Footer -->
+        <div class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-2.5 sm:p-3 flex items-center gap-2">
+          <button onclick="toggleTray()" title="Stickers & Word Builder" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/20 text-indigo-500 transition">
+            <i class="fa-solid fa-face-grin-stars text-lg"></i>
+          </button>
+
+          <!-- Standard Image Upload -->
+          <label title="Send Image" class="cursor-pointer p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/20 text-emerald-500 transition">
+            <i class="fa-solid fa-image text-lg"></i>
+            <input type="file" accept="image/*" onchange="handleSendImage(event, false)" class="hidden" />
+          </label>
+
+          <!-- View-Once Image Upload -->
+          <label title="Send 1x View-Once Photo" class="cursor-pointer relative p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-500/20 text-amber-500 transition">
+            <i class="fa-solid fa-fire-flame-curved text-lg"></i>
+            <span class="absolute -top-1 -right-1 text-[9px] font-black bg-amber-500 text-slate-950 rounded-full w-4 h-4 flex items-center justify-center">1</span>
+            <input type="file" accept="image/*" onchange="handleSendImage(event, true)" class="hidden" />
+          </label>
+
+          <input id="chat-message-input" onkeydown="if(event.key==='Enter') sendMessage()" type="text" placeholder="Type a message..." class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 ring-indigo-500" />
+
+          <button onclick="sendMessage()" class="p-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-pink-600 hover:opacity-90 text-white shadow-md transition active:scale-95">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 2: ONLINE MULTIPLAYER GAMES (2P) ==================== -->
+      <section id="view-games" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6 space-y-6">
+        <div class="max-w-5xl mx-auto space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div>
+              <h2 class="font-display text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-trophy text-amber-400"></i> Multiplayer Arena</h2>
+              <p class="text-xs text-slate-500">Win any match to earn <span class="text-amber-500 font-bold">+50 Tokens</span>! Yearly leader wins <span class="text-indigo-400 font-bold">+500 Tokens</span>.</p>
+            </div>
+            <!-- Annual Leaderboard Pill -->
+            <div class="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs">
+              <div><span class="text-slate-400 block text-[10px]">2026 Wins</span><span class="font-bold text-indigo-400">Cleo: <span id="annual-wins-Cleo">0</span></span> • <span class="font-bold text-pink-400">Keona: <span id="annual-wins-Keona">0</span></span></div>
+              <button onclick="claimYearlyChampionBonus()" class="px-2.5 py-1.5 rounded-lg bg-amber-500/20 text-amber-500 font-bold hover:bg-amber-500/30">Year-End Payout</button>
+            </div>
+          </div>
+
+          <!-- Game Selector Tabs -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <button onclick="selectMultiplayerGame('chess')" id="game-tab-chess" class="game-tab-btn p-3 rounded-2xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow">
+              <i class="fa-solid fa-chess-knight"></i> Chess
+            </button>
+            <button onclick="selectMultiplayerGame('pong')" id="game-tab-pong" class="game-tab-btn p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-table-tennis-paddle-ball"></i> Ping Pong
+            </button>
+            <button onclick="selectMultiplayerGame('tictactoe')" id="game-tab-tictactoe" class="game-tab-btn p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-hashtag"></i> Tic-Tac-Toe
+            </button>
+            <button onclick="selectMultiplayerGame('snakes')" id="game-tab-snakes" class="game-tab-btn p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-staff-snake"></i> Snakes & Ladders
+            </button>
+          </div>
+
+          <!-- CHESS ARENA -->
+          <div id="mp-game-chess" class="mp-game-panel bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-400">Choose Side:</span>
+                <button onclick="setChessSide('white')" id="chess-side-white" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-900 border border-slate-300">♔ White: <span id="chess-white-player">Cleo</span></button>
+                <button onclick="setChessSide('black')" id="chess-side-black" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-white border border-slate-700">♚ Black: <span id="chess-black-player">Keona</span></button>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="chess-turn-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/15 text-indigo-400">White's Turn</span>
+                <button onclick="resetChessBoard()" class="px-3 py-1.5 rounded-xl bg-rose-500/15 text-rose-500 text-xs font-bold hover:bg-rose-500/25">New Match</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <!-- 8x8 Chess Board -->
+              <div class="lg:col-span-7 flex justify-center">
+                <div id="chess-board" class="grid grid-cols-8 w-full max-w-[420px] aspect-square rounded-2xl overflow-hidden border-4 border-slate-700 shadow-xl select-none"></div>
+              </div>
+
+              <!-- Chess Match History (Local Refresh) -->
+              <div class="lg:col-span-5 bg-slate-50 dark:bg-slate-950 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-bold text-sm"><i class="fa-solid fa-clock-rotate-left mr-1.5 text-indigo-400"></i>Chess Win/Loss History</h4>
+                  <button onclick="refreshChessHistoryLocal()" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 active:scale-95 transition">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i>Refresh (My View)
+                  </button>
+                </div>
+                <div id="chess-history-list" class="max-h-72 overflow-y-auto space-y-2 text-xs"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PING PONG ARENA -->
+          <div id="mp-game-pong" class="mp-game-panel hidden bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-bold text-base">Neon Ping Pong (First to 5 Wins +50 Tokens)</h3>
+                <p class="text-xs text-slate-400">Move paddle with mouse/touch or Left/Right buttons. Cleo = Bottom Paddle, Keona = Top Paddle.</p>
+              </div>
+              <button onclick="startPongMatch()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">Start / Reset Match</button>
+            </div>
+            <div class="flex justify-center">
+              <div class="w-full max-w-md aspect-[3/4] bg-slate-950 rounded-2xl overflow-hidden border-2 border-indigo-500/40 relative">
+                <canvas id="pong-canvas" class="w-full h-full block"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- TIC-TAC-TOE ARENA -->
+          <div id="mp-game-tictactoe" class="mp-game-panel hidden bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 text-center space-y-4">
+            <div class="flex items-center justify-between max-w-sm mx-auto">
+              <span class="text-xs font-bold text-indigo-400">Cleo (X) vs Keona (O)</span>
+              <span id="ttt-status" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800">Turn: X</span>
+              <button onclick="resetTicTacToe()" class="px-3 py-1 rounded-xl bg-indigo-600 text-white text-xs font-bold">Reset</button>
+            </div>
+            <div id="ttt-board" class="grid grid-cols-3 gap-2.5 max-w-xs mx-auto aspect-square"></div>
+          </div>
+
+          <!-- SNAKES & LADDERS ARENA -->
+          <div id="mp-game-snakes" class="mp-game-panel hidden bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3 text-xs font-bold">
+                <span class="px-3 py-1.5 rounded-xl bg-indigo-500/15 text-indigo-400">🔵 Cleo: Sq <span id="snakes-pos-Cleo">1</span></span>
+                <span class="px-3 py-1.5 rounded-xl bg-pink-500/15 text-pink-400">🩷 Keona: Sq <span id="snakes-pos-Keona">1</span></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="snakes-turn-label" class="text-xs font-bold text-amber-400">Cleo's Roll</span>
+                <button onclick="rollSnakesDice()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold shadow">
+                  <i class="fa-solid fa-dice mr-1.5"></i>Roll Dice (<span id="snakes-dice-val">-</span>)
+                </button>
+                <button onclick="resetSnakesGame()" class="px-3 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold">Reset</button>
+              </div>
+            </div>
+            <div id="snakes-board" class="grid grid-cols-10 max-w-lg mx-auto aspect-square rounded-2xl overflow-hidden border-2 border-slate-700 text-[10px] sm:text-xs font-bold"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 3: SOLO GAMES (COIN & SPIN WHEEL) ==================== -->
+      <section id="view-solo" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Coin Flip -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-between text-center space-y-6">
+            <div>
+              <h3 class="font-display text-xl font-bold">Heads or Tails</h3>
+              <p class="text-xs text-slate-400">Individual private coin toss</p>
+            </div>
+            <div id="coin-visual" class="w-32 h-32 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-300 to-amber-600 border-4 border-amber-200 shadow-2xl flex items-center justify-center text-slate-950 font-display font-black text-2xl select-none">
+              HEADS
+            </div>
+            <div class="space-y-3 w-full">
+              <p id="coin-result-text" class="text-sm font-bold text-amber-400">Tap below to flip!</p>
+              <button onclick="flipSoloCoin()" class="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold shadow-lg transition active:scale-95">
+                Flip Coin
+              </button>
+            </div>
+          </div>
+
+          <!-- Spin the Wheel -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 flex flex-col items-center space-y-4">
+            <div class="text-center">
+              <h3 class="font-display text-xl font-bold">Custom Spin the Wheel</h3>
+              <p class="text-xs text-slate-400">Edit names/choices below & spin!</p>
+            </div>
+
+            <div class="relative w-60 h-60 flex items-center justify-center">
+              <div class="absolute -top-2 z-10 text-rose-500 text-2xl drop-shadow"><i class="fa-solid fa-caret-down"></i></div>
+              <canvas id="wheel-canvas" width="240" height="240" class="rounded-full shadow-xl"></canvas>
+            </div>
+
+            <p id="wheel-winner-text" class="text-sm font-bold text-pink-400 h-5"></p>
+
+            <button onclick="spinCustomWheel()" class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-pink-600 text-white font-bold shadow-lg">
+              Spin Wheel!
+            </button>
+
+            <div class="w-full pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
+              <div class="flex gap-2">
+                <input id="wheel-new-option" type="text" placeholder="Add name or option..." class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs" />
+                <button onclick="addWheelOption()" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold">Add</button>
+              </div>
+              <div id="wheel-options-tags" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 4: STREAK PET & CARE ==================== -->
+      <section id="view-pet" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-4xl mx-auto space-y-6">
+          <!-- Streak & Hearts Status Banner -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <span class="text-xs text-slate-400 block">Chat Streak</span>
+              <span class="text-2xl font-display font-bold text-amber-500">🔥 <span id="pet-streak-days">0</span> Days</span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <span class="text-xs text-slate-400 block">Affection Hearts</span>
+              <span id="pet-hearts-display" class="text-xl font-bold text-rose-500">🤍🤍🤍🤍🤍 (0/5)</span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <span class="text-xs text-slate-400 block">Monthly Revives</span>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="text-xl font-bold text-emerald-400"><span id="pet-revives-left">3</span> / 3</span>
+                <button onclick="useStreakRevive()" class="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-[11px] font-bold hover:bg-emerald-500/30">Revive</button>
+              </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <span class="text-xs text-slate-400 block">Pet Birthday</span>
+              <span id="pet-birthday-label" class="text-sm font-bold text-indigo-400">Nov 20 (Today!)</span>
+            </div>
+          </div>
+
+          <!-- Pet Stage Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 text-center space-y-5 relative overflow-hidden">
+            <div id="pet-locked-overlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-xs z-10 flex flex-col items-center justify-center p-6 text-white">
+              <i class="fa-solid fa-egg text-5xl text-amber-400 mb-3 animate-bounce"></i>
+              <h3 class="font-display text-xl font-bold">Pet Egg Hatching!</h3>
+              <p class="text-sm text-slate-300 max-w-md mt-1">Chat together for <span class="text-amber-400 font-bold">3 consecutive days</span> to unlock your shared Streak Pet! (Current streak: <span id="egg-streak-progress">0</span>/3 days)</p>
+              <button onclick="simulateStreakDay()" class="mt-4 px-4 py-2 rounded-xl bg-indigo-600 text-xs font-bold hover:bg-indigo-500">Demo: +1 Streak Day</button>
+            </div>
+
+            <!-- Pet Name & 7-Day Cooldown -->
+            <div class="flex flex-wrap items-center justify-center gap-2">
+              <h3 id="pet-name-heading" class="font-display text-2xl font-bold">Mochi</h3>
+              <button onclick="promptRenamePet()" class="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold hover:bg-indigo-500 hover:text-white transition">
+                <i class="fa-solid fa-pen mr-1"></i>Rename
+              </button>
+              <span id="pet-rename-cooldown" class="text-[11px] text-slate-400"></span>
+            </div>
+
+            <!-- Interactive SVG Pet Avatar with Equipped Outfit Overlay -->
+            <div onclick="interactWithPet('pet')" class="cursor-pointer inline-block p-6 rounded-3xl bg-gradient-to-b from-indigo-500/10 to-pink-500/10 border border-indigo-500/20 pet-float select-none">
+              <div id="pet-svg-stage" class="w-44 h-44 mx-auto flex items-center justify-center"></div>
+              <p id="pet-mood-bubble" class="mt-2 text-xs font-bold text-indigo-400 bg-white dark:bg-slate-800 px-3 py-1 rounded-full shadow-xs inline-block">
+                "Tap me or care for me! 💖"
+              </p>
+            </div>
+
+            <!-- Equipped Outfit Badge -->
+            <div class="text-xs text-slate-400">
+              Equipped Outfit: <span id="pet-equipped-outfit-name" class="font-bold text-purple-400">Default Cozy Scarf</span>
+              <button onclick="switchView('gacha')" class="ml-2 underline text-indigo-400 font-semibold">Change in Wardrobe</button>
+            </div>
+
+            <!-- 5 Care Action Buttons -->
+            <div class="grid grid-cols-5 gap-2 max-w-lg mx-auto pt-2">
+              <button onclick="interactWithPet('feed')" class="p-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 flex flex-col items-center gap-1 text-xs font-bold transition">
+                <i class="fa-solid fa-bowl-food text-lg"></i>Feed
+              </button>
+              <button onclick="interactWithPet('bathe')" class="p-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-500 flex flex-col items-center gap-1 text-xs font-bold transition">
+                <i class="fa-solid fa-bath text-lg"></i>Bathe
+              </button>
+              <button onclick="interactWithPet('play')" class="p-3 rounded-2xl bg-pink-500/15 hover:bg-pink-500/25 text-pink-500 flex flex-col items-center gap-1 text-xs font-bold transition">
+                <i class="fa-solid fa-baseball text-lg"></i>Play
+              </button>
+              <button onclick="interactWithPet('study')" class="p-3 rounded-2xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-500 flex flex-col items-center gap-1 text-xs font-bold transition">
+                <i class="fa-solid fa-book text-lg"></i>Study
+              </button>
+              <button onclick="interactWithPet('sleep')" class="p-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-500 flex flex-col items-center gap-1 text-xs font-bold transition">
+                <i class="fa-solid fa-bed text-lg"></i>Sleep
+              </button>
+            </div>
+
+            <!-- Testing Controls for Streak / Birthday / Break -->
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap justify-center gap-2 text-[11px]">
+              <button onclick="simulateStreakDay()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold">+1 Streak Day</button>
+              <button onclick="simulateLoseStreak()" class="px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 font-semibold">Simulate Missed Day (-1 Heart)</button>
+              <button onclick="triggerPetBirthdayCheck()" class="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 font-semibold">Check Birthday Care</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 5: GACHA & 2,510 OUTFIT WARDROBE ==================== -->
+      <section id="view-gacha" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-5xl mx-auto space-y-6">
+          <!-- Gacha Banner -->
+          <div class="bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+              <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-bold mb-2">
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                  <span id="gacha-discount-badge">Special 20% Discount Active on July 8 & Oct 20!</span>
+                </div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold">Pet Couture Gacha</h2>
+                <p class="text-xs sm:text-sm text-indigo-200 mt-1">2,510 Unique Outfits: 1,000 Common • 750 Uncommon • 500 Rare • 250 Legendary • 10 Mystery</p>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-2.5">
+                <button onclick="pullGacha(1)" class="px-5 py-3 rounded-2xl bg-white text-indigo-950 font-bold text-sm shadow-lg hover:scale-105 transition">
+                  1x Pull (<span id="pull-1-cost">5</span> <i class="fa-solid fa-coins text-amber-500"></i>)
+                </button>
+                <button onclick="pullGacha(10)" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-pink-500 text-slate-950 font-black text-sm shadow-lg hover:scale-105 transition">
+                  10x Pull (<span id="pull-10-cost">50</span> <i class="fa-solid fa-coins"></i>)
+                </button>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center gap-3 text-xs text-indigo-200">
+              <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                <input id="simulate-discount-date" onchange="updateGachaPrices()" type="checkbox" class="rounded accent-amber-400" />
+                <span>Simulate July 8 / Oct 20 (20% Off Event)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Gacha Summon Result Modal Box -->
+          <div id="gacha-result-panel" class="hidden bg-white dark:bg-slate-900 rounded-3xl p-5 border-2 border-amber-400/60 shadow-xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-display font-bold text-base text-amber-400"><i class="fa-solid fa-star mr-1.5"></i>Summon Results!</h4>
+              <button onclick="document.getElementById('gacha-result-panel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-white">Close</button>
+            </div>
+            <div id="gacha-results-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5"></div>
+          </div>
+
+          <!-- Wardrobe Inventory -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="font-bold text-base">Unlocked Wardrobe (<span id="wardrobe-count">1</span> / 2,510)</h3>
+              <select id="wardrobe-filter" onchange="renderWardrobe()" class="bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs font-semibold">
+                <option value="ALL">All Unlocked</option>
+                <option value="Mystery">Mystery (10)</option>
+                <option value="Legendary">Legendary (250)</option>
+                <option value="Rare">Rare (500)</option>
+                <option value="Uncommon">Uncommon (750)</option>
+                <option value="Common">Common (1,000)</option>
+              </select>
+            </div>
+            <div id="wardrobe-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-96 overflow-y-auto"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 6: POLYMARKET PEER-TO-PEER BETS ==================== -->
+      <section id="view-polymarket" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-4xl mx-auto space-y-6">
+          <!-- Create New Prediction Poll -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <h2 class="font-display text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-cyan-400"></i> Polymarket — Token Bets</h2>
+            <p class="text-xs text-slate-400">Create a prediction poll. Both Cleo and Keona bet tokens — the winner takes the entire combined pot!</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input id="poly-question" type="text" placeholder="Question (e.g. Who will get 100 in the SATs?)" class="sm:col-span-3 bg-slate-100 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 text-sm" />
+              <input id="poly-opt-a" type="text" placeholder="Option A (e.g. Ava)" class="bg-slate-100 dark:bg-slate-800 rounded-xl px-3.5 py-2 text-sm" />
+              <input id="poly-opt-b" type="text" placeholder="Option B (e.g. Max)" class="bg-slate-100 dark:bg-slate-800 rounded-xl px-3.5 py-2 text-sm" />
+              <button onclick="createPolymarketPoll()" class="py-2 px-4 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm">Launch Poll</button>
+            </div>
+          </div>
+
+          <!-- Active & Resolved Polls -->
+          <div id="polymarket-polls-list" class="space-y-4"></div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 7: JOINT REMINDERS ==================== -->
+      <section id="view-reminders" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-3xl mx-auto space-y-5">
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <h2 class="font-display text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-list-check text-blue-500"></i> Joint Reminders & Tasks</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+              <input id="reminder-title-input" type="text" placeholder="Task or bullet point..." class="sm:col-span-6 bg-slate-100 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 text-sm" />
+              <input id="reminder-due-input" type="datetime-local" class="sm:col-span-4 bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2.5 text-xs" />
+              <button onclick="addJointReminder()" class="sm:col-span-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm">Add</button>
+            </div>
+          </div>
+
+          <div id="reminders-list" class="space-y-2.5"></div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 8: SHARED CALENDAR ==================== -->
+      <section id="view-calendar" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <button onclick="changeCalendarMonth(-1)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800"><i class="fa-solid fa-chevron-left"></i></button>
+              <h2 id="calendar-month-title" class="font-display text-lg font-bold min-w-[160px] text-center">November 2026</h2>
+              <button onclick="changeCalendarMonth(1)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="flex gap-2">
+              <input id="cal-event-date" type="date" class="bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs" />
+              <input id="cal-event-title" type="text" placeholder="Add shared event..." class="bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs" />
+              <button onclick="addCalendarEvent()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-bold">Add</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-400 pb-1">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div id="calendar-grid" class="grid grid-cols-7 gap-1.5"></div>
+          <div id="calendar-events-list" class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-1.5 text-xs"></div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 9: COLLABORATIVE CANVAS ==================== -->
+      <section id="view-canvas" class="view-section hidden h-full flex flex-col p-3 sm:p-5 overflow-hidden">
+        <div class="max-w-5xl w-full mx-auto flex-1 flex flex-col bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 gap-3 overflow-hidden">
+          <!-- Toolbar -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="setCanvasTool('brush')" id="tool-brush" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold"><i class="fa-solid fa-paintbrush mr-1"></i>Brush</button>
+              <button onclick="setCanvasTool('eraser')" id="tool-eraser" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold"><i class="fa-solid fa-eraser mr-1"></i>Eraser</button>
+              <button onclick="setCanvasTool('fill')" id="tool-fill" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold"><i class="fa-solid fa-fill-drip mr-1"></i>Fill</button>
+              <input id="canvas-color-picker" type="color" value="#6366f1" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent" title="Color" />
+              <div class="flex items-center gap-1.5 text-xs bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl">
+                <span>Size:</span>
+                <input id="canvas-brush-size" type="range" min="2" max="40" value="6" class="w-20 accent-indigo-500" />
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="clearSharedCanvas(true)" class="px-3 py-1.5 rounded-xl bg-rose-500/15 text-rose-500 text-xs font-bold hover:bg-rose-500/25"><i class="fa-solid fa-rotate-right mr-1"></i>Refresh / Clear</button>
+              <button onclick="saveDrawingToGallery()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i>Save Drawing</button>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div id="shared-canvas-wrapper" class="flex-1 w-full bg-white rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden relative touch-none">
+            <canvas id="shared-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 10: SAVED DRAWINGS GALLERY ==================== -->
+      <section id="view-saved-drawings" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-5xl mx-auto space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="font-display text-xl font-bold"><i class="fa-solid fa-images text-teal-400 mr-2"></i>Saved Drawings Gallery</h2>
+            <button onclick="switchView('canvas')" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Back to Canvas</button>
+          </div>
+          <div id="saved-drawings-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 11: HOP TO APPS ==================== -->
+      <section id="view-apps" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-3xl mx-auto space-y-5">
+          <div class="text-center">
+            <h2 class="font-display text-2xl font-bold">Hop to Apps</h2>
+            <p class="text-xs text-slate-400">One-tap swift launch to your favorite apps</p>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <a href="https://www.youtube.com" target="_blank" rel="noopener" class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-500 flex flex-col items-center gap-3 shadow-xs transition group">
+              <div class="w-14 h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center text-2xl group-hover:scale-110 transition"><i class="fa-brands fa-youtube"></i></div>
+              <span class="font-bold text-sm">YouTube</span>
+            </a>
+            <a href="https://www.tiktok.com" target="_blank" rel="noopener" class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-pink-500 flex flex-col items-center gap-3 shadow-xs transition group">
+              <div class="w-14 h-14 rounded-2xl bg-slate-950 text-white border border-slate-700 flex items-center justify-center text-2xl group-hover:scale-110 transition"><i class="fa-brands fa-tiktok"></i></div>
+              <span class="font-bold text-sm">TikTok</span>
+            </a>
+            <a href="https://www.instagram.com" target="_blank" rel="noopener" class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-fuchsia-500 flex flex-col items-center gap-3 shadow-xs transition group">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 text-white flex items-center justify-center text-2xl group-hover:scale-110 transition"><i class="fa-brands fa-instagram"></i></div>
+              <span class="font-bold text-sm">Instagram</span>
+            </a>
+            <a href="https://web.whatsapp.com" target="_blank" rel="noopener" class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 flex flex-col items-center gap-3 shadow-xs transition group">
+              <div class="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl group-hover:scale-110 transition"><i class="fa-brands fa-whatsapp"></i></div>
+              <span class="font-bold text-sm">WhatsApp</span>
+            </a>
+            <a href="https://teams.microsoft.com" target="_blank" rel="noopener" class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 flex flex-col items-center gap-3 shadow-xs transition group">
+              <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl group-hover:scale-110 transition"><i class="fa-solid fa-people-group"></i></div>
+              <span class="font-bold text-sm">Microsoft Teams</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 12: ALL RULES ==================== -->
+      <section id="view-rules" class="view-section hidden h-full overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-3xl mx-auto bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-5 text-sm leading-relaxed">
+          <h2 class="font-display text-2xl font-bold text-indigo-400"><i class="fa-solid fa-scroll mr-2"></i>All Rules & Mechanics</h2>
+
+          <div class="space-y-2">
+            <h3 class="font-bold text-base text-pink-400">1. Privacy, Read Receipts & Ephemeral Media</h3>
+            <ul class="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-300">
+              <li>Cleo and Keona each have PIN-protected profiles so neither can access the other's private session or settings.</li>
+              <li>Messages show Sent, Delivered, and Read timestamps — unless a user turns <strong>Read Receipts OFF</strong> in their Profile Settings.</li>
+              <li><strong>View-Once (1x) Photos</strong> can only be opened once by the recipient before locking permanently.</li>
+            </ul>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="font-bold text-base text-amber-400">2. Streak Pet, Hearts, Birthday & Revives</h3>
+            <ul class="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-300">
+              <li>Chatting daily builds your streak. After <strong>3 consecutive days</strong> of chatting, you unlock your shared <strong>Streak Pet</strong> (if lost, chat 3 days again to re-unlock).</li>
+              <li>You receive <strong>3 Revives per month</strong> to restore a broken streak.</li>
+              <li>Pet starts at <strong>0/5 Hearts</strong>. Every <strong>30 streak days</strong> adds <strong>+1 Heart</strong>. Losing a streak (even if revived) upsets the pet and removes <strong>-1 Heart</strong>.</li>
+              <li>Feeding, bathing, playing, studying, or sleeping keeps the pet happy, though neglecting care does <em>not</em> break the streak.</li>
+              <li>Pet names can only be changed <strong>once every 7 days</strong>.</li>
+              <li><strong>Pet Birthday:</strong> Once a year on the pet's birthday, your streak is safe even without chatting — however, if neither of you clicks/interacts with the pet on its birthday, you lose <strong>1 Monthly Revive</strong>.</li>
+            </ul>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="font-bold text-base text-purple-400">3. Tokens, Games & Gacha Outfits</h3>
+            <ul class="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-300">
+              <li>Earn <strong>+1 Token</strong> per chat message sent and <strong>+50 Tokens</strong> per multiplayer game win (Chess, Ping Pong, Tic-Tac-Toe, Snakes & Ladders).</li>
+              <li>Each year, the player with the most multiplayer game wins receives a <strong>+500 Token</strong> champion bonus before the annual win counter resets.</li>
+              <li><strong>Gacha Pulls:</strong> 1 Pull = 5 Tokens, 10 Pull = 50 Tokens. On <strong>July 8</strong> and <strong>October 20</strong>, all pulls receive a <strong>20% discount</strong> (4 Tokens / 40 Tokens).</li>
+              <li><strong>Outfit Pool (2,510 Total):</strong> 1,000 Common, 750 Uncommon, 500 Rare, 250 Legendary, and 10 Mystery outfits.</li>
+            </ul>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="font-bold text-base text-cyan-400">4. Polymarket Bets</h3>
+            <ul class="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-300">
+              <li>Create prediction polls and wager tokens on outcomes. Once resolved, <strong>100% of all tokens bet by both players</strong> go directly to the winner.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== MODALS (PROFILE, PARTNER BIO, VIEW-ONCE, CALLS) ==================== -->
+
+  <!-- My Profile & Settings Modal -->
+  <div id="my-profile-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display text-lg font-bold">My Profile & Privacy</h3>
+        <button onclick="closeModal('my-profile-modal')" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="flex flex-col items-center gap-2">
+        <img id="modal-my-avatar" src="https://placehold.co/120x120/6366f1/ffffff?text=Me" class="w-20 h-20 rounded-full object-cover border-2 border-indigo-500" />
+        <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500">
+          <i class="fa-solid fa-camera mr-1"></i>Upload New Photo
+          <input type="file" accept="image/*" onchange="handleProfileAvatarUpload(event)" class="hidden" />
+        </label>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold text-slate-400 block mb-1">My Bio</label>
+          <textarea id="modal-my-bio" rows="2" class="w-full bg-slate-100 dark:bg-slate-800 rounded-xl p-2.5 text-sm"></textarea>
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-400 block mb-1">Profile Lock PIN (Keeps your account private)</label>
+          <input id="modal-my-pin" type="text" maxlength="6" class="w-full bg-slate-100 dark:bg-slate-800 rounded-xl p-2.5 text-sm font-mono" />
+        </div>
+
+        <!-- Read Receipts Privacy Toggle -->
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-100 dark:bg-slate-800">
+          <div>
+            <span class="font-bold block">Read Receipts (WhatsApp Style)</span>
+            <span class="text-[11px] text-slate-400">If turned off, partner can't see when you read their messages</span>
+          </div>
+          <input id="modal-read-receipts-toggle" type="checkbox" class="w-5 h-5 accent-indigo-600 rounded" />
+        </div>
+
+        <!-- Chat Wallpaper Picker -->
+        <div>
+          <label class="font-bold text-slate-400 block mb-1.5">Chat Background Wallpaper</label>
+          <div class="grid grid-cols-4 gap-2 mb-2">
+            <button onclick="setChatWallpaper('default')" class="py-2 rounded-xl border border-slate-600 text-[11px] font-bold">Default</button>
+            <button onclick="setChatWallpaper('aurora')" class="py-2 rounded-xl bg-indigo-950 text-white text-[11px] font-bold">Aurora</button>
+            <button onclick="setChatWallpaper('sakura')" class="py-2 rounded-xl bg-pink-200 text-pink-950 text-[11px] font-bold">Sakura</button>
+            <button onclick="setChatWallpaper('ocean')" class="py-2 rounded-xl bg-teal-950 text-white text-[11px] font-bold">Ocean</button>
+          </div>
+          <label class="cursor-pointer block text-center py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold">
+            <i class="fa-solid fa-image mr-1"></i>Upload Custom Chat Background
+            <input type="file" accept="image/*" onchange="handleWallpaperUpload(event)" class="hidden" />
+          </label>
+        </div>
+      </div>
+
+      <button onclick="saveMyProfileSettings()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-pink-600 text-white font-bold text-sm">
+        Save Changes
+      </button>
+    </div>
+  </div>
+
+  <!-- Partner Profile View Modal -->
+  <div id="partner-profile-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+      <img id="partner-modal-avatar" src="https://placehold.co/120x120/ec4899/ffffff?text=Partner" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-pink-500 shadow-lg" />
+      <div>
+        <h3 id="partner-modal-name" class="font-display text-xl font-bold">Keona</h3>
+        <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-semibold mt-1">Online</span>
+      </div>
+      <div class="bg-slate-100 dark:bg-slate-800 rounded-2xl p-3.5 text-left">
+        <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Bio</span>
+        <p id="partner-modal-bio" class="text-sm text-slate-700 dark:text-slate-200"></p>
+      </div>
+      <button onclick="closeModal('partner-profile-modal')" class="w-full py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 font-bold text-xs">Close</button>
+    </div>
+  </div>
+
+  <!-- View-Once Image Viewer Modal -->
+  <div id="view-once-modal" class="fixed inset-0 z-50 hidden bg-black/95 flex flex-col items-center justify-center p-4">
+    <div class="max-w-lg w-full text-center space-y-4">
+      <div class="flex items-center justify-between text-white">
+        <span class="text-xs font-bold text-amber-400"><i class="fa-solid fa-fire mr-1"></i>View-Once Photo (Closes forever after viewing)</span>
+        <button onclick="closeViewOnceModal()" class="px-3 py-1 rounded-xl bg-white/15 text-xs font-bold">Done</button>
+      </div>
+      <img id="view-once-img" src="" class="max-h-[75vh] mx-auto rounded-2xl shadow-2xl object-contain" />
+    </div>
+  </div>
+
+  <!-- Active Voice/Video Call Modal -->
+  <div id="active-call-modal" class="fixed inset-0 z-50 hidden bg-slate-950/95 backdrop-blur-lg flex flex-col items-center justify-between p-8 text-white">
+    <div class="text-center mt-8 space-y-3">
+      <span id="call-type-badge" class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">Voice Call</span>
+      <img id="call-partner-avatar" src="https://placehold.co/120x120/ec4899/ffffff?text=K" class="w-28 h-28 rounded-full object-cover mx-auto border-4 border-indigo-500 shadow-2xl animate-pulse" />
+      <h3 id="call-partner-name" class="font-display text-2xl font-bold">Keona</h3>
+      <p id="call-timer-text" class="text-sm text-slate-400 font-mono">00:00 • Connected</p>
+    </div>
+    <div id="call-video-preview" class="hidden w-full max-w-md aspect-video rounded-3xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-500 text-xs">
+      <div class="text-center"><i class="fa-solid fa-video text-3xl mb-2 text-indigo-400"></i><p>Live Video Feed Active</p></div>
+    </div>
+    <div class="flex items-center gap-5 mb-6">
+      <button onclick="this.classList.toggle('bg-rose-600')" class="w-14 h-14 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-lg"><i class="fa-solid fa-microphone-slash"></i></button>
+      <button onclick="endActiveCall()" class="w-16 h-16 rounded-full bg-rose-600 hover:bg-rose-500 flex items-center justify-center text-2xl shadow-xl"><i class="fa-solid fa-phone-slash"></i></button>
+    </div>
+  </div>
+
+  <!-- Call History Modal -->
+  <div id="call-history-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display text-lg font-bold"><i class="fa-solid fa-phone-volume text-emerald-500 mr-2"></i>Call History</h3>
+        <button onclick="closeModal('call-history-modal')" class="text-slate-400 hover:text-rose-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="call-history-list" class="max-h-80 overflow-y-auto space-y-2 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- ==================== FIREBASE & FULL APPLICATION LOGIC ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // -------------------- FIREBASE INITIALIZATION --------------------
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'cleo-keona-hub';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+    let db = null;
+    let auth = null;
+    let currentUserAuth = null;
+
+    // -------------------- CENTRAL REACTIVE STATE --------------------
+    const state = {
+      myRole: null, // 'Cleo' or 'Keona'
+      pendingRole: null,
+      editingMsgId: null,
+      selectedChessSq: null,
+      localChessRefreshSeed: 0,
+      calYear: 2026,
+      calMonth: 10, // November (0-indexed)
+      canvasTool: 'brush',
+      isDrawing: false,
+      lastX: 0,
+      lastY: 0,
+      callInterval: null,
+      callSeconds: 0,
+      activeCallType: 'voice',
+
+      profiles: {
+        Cleo: {
+          name: 'Cleo',
+          avatar: 'https://placehold.co/120x120/6366f1/ffffff?text=Cleo',
+          bio: 'Hey Keona! Ready to chat & win chess ✨',
+          pin: '0000',
+          readReceipts: true,
+          tokens: 50,
+          wallpaper: 'default'
+        },
+        Keona: {
+          name: 'Keona',
+          avatar: 'https://placehold.co/120x120/ec4899/ffffff?text=Keona',
+          bio: 'Cleo’s bestie 🌸 Pet mom & Gacha collector',
+          pin: '0000',
+          readReceipts: true,
+          tokens: 50,
+          wallpaper: 'default'
+        }
+      },
+      messages: [],
+      pinnedMessageId: null,
+      stickers: [
+        { id: 'stk1', type: 'image', url: 'https://placehold.co/120x120/f43f5e/ffffff?text=HUG+%F0%9F%AB%82' },
+        { id: 'stk2', type: 'image', url: 'https://placehold.co/120x120/8b5cf6/ffffff?text=YAY+%E2%9C%A8' }
+      ],
+      quickWords: ['i', 'me', 'my', 'you', 'when', 'how', 'where', 'are'],
+      callLogs: [],
+      pet: {
+        name: 'Mochi',
+        streak: 3,
+        hearts: 1,
+        revives: 3,
+        lastChatDate: new Date().toISOString().slice(0, 10),
+        lastRenameTime: 0,
+        birthday: '11-20',
+        birthdayInteractedToday: false,
+        equippedOutfitId: 0,
+        unlockedOutfitIds: [0]
+      },
+      games: {
+        annualYear: 2026,
+        annualWins: { Cleo: 0, Keona: 0 },
+        chess: {
+          board: null,
+          turn: 'white',
+          whitePlayer: 'Cleo',
+          blackPlayer: 'Keona',
+          history: []
+        },
+        tictactoe: {
+          board: Array(9).fill(''),
+          turn: 'X'
+        },
+        snakes: {
+          positions: { Cleo: 1, Keona: 1 },
+          turn: 'Cleo'
+        }
+      },
+      wheelOptions: ['Cleo', 'Keona', 'Movie Night', 'Bubble Tea', 'Play Chess'],
+      reminders: [],
+      calendarEvents: [
+        { id: 'ev1', date: '2026-11-20', title: '🎂 Mochi Pet Birthday!' }
+      ],
+      savedDrawings: [],
+      polls: []
+    };
+
+    // -------------------- 2,510 PROCEDURAL OUTFIT CATALOG --------------------
+    // 1,000 Common + 750 Uncommon + 500 Rare + 250 Legendary + 10 Mystery = 2,510 Outfits
+    const OUTFIT_CATALOG = (() => {
+      const list = [];
+      const tiers = [
+        { rarity: 'Common', count: 1000, prefixes: ['Cozy', 'Cotton', 'Casual', 'Soft', 'Sunny', 'Pastel', 'Daily', 'Simple', 'Mint', 'Berry'], items: ['Tee', 'Scarf', 'Cap', 'Hoodie', 'Ribbon', 'Beanie', 'Vest', 'Apron', 'Sweater', 'Bandana'] },
+        { rarity: 'Uncommon', count: 750, prefixes: ['Striped', 'Velvet', 'Sailor', 'Retro', 'Starry', 'Floral', 'Denim', 'Plaid', 'Cloud', 'Honey'], items: ['Overalls', 'Beret', 'Cardigan', 'Kimono', 'Cloak', 'Uniform', 'Tunic', 'Poncho', 'Jacket', 'Bowtie'] },
+        { rarity: 'Rare', count: 500, prefixes: ['Crystal', 'Royal', 'Cyber', 'Sakura', 'Moonlit', 'Golden', 'Frost', 'Crimson', 'Mystic', 'Neon'], items: ['Armor', 'Gown', 'Crown', 'Suit', 'Wings', 'Mantle', 'Robe', 'Hanbok', 'Tuxedo', 'Tiara'] },
+        { rarity: 'Legendary', count: 250, prefixes: ['Celestial', 'Archangel', 'Dragon', 'Empress', 'Astral', 'Phoenix', 'Sovereign', 'Solaris', 'Abyssal', 'Eternal'], items: ['Regalia', 'Halo & Robe', 'Battle Dress', 'Starlight Coat', 'Divine Kimono'] },
+        { rarity: 'Mystery', count: 10, prefixes: ['???'], items: ['Eclipse Singularity', 'Chronos Paradox', 'Zero-Point Nebula', 'Void Sovereign', 'Rainbow Genesis', 'Quantum Phantom', 'Dreamweaver Aura', 'Infinity Prism', 'Secret Cat God', 'Twin-Soul Destiny'] }
+      ];
+      const palette = ['#f43f5e', '#ec4899', '#a855f7', '#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#eab308', '#f97316', '#f8fafc'];
+      let id = 0;
+      for (const tier of tiers) {
+        for (let i = 0; i < tier.count; i++) {
+          const name = tier.rarity === 'Mystery'
+            ? `✨ ${tier.items[i]}`
+            : `${tier.prefixes[i % tier.prefixes.length]} ${tier.items[Math.floor(i / tier.prefixes.length) % tier.items.length]} #${i + 1}`;
+          list.push({
+            id,
+            name,
+            rarity: tier.rarity,
+            color: palette[id % palette.length],
+            accessory: ['crown', 'bow', 'wings', 'halo', 'glasses'][id % 5]
+          });
+          id++;
+        }
+      }
+      return list;
+    })();
+
+    // -------------------- FIREBASE SYNC HELPERS --------------------
+    function colRef(name) {
+      return collection(db, 'artifacts', appId, 'public', 'data', name);
+    }
+    function docRef(name, id) {
+      return doc(db, 'artifacts', appId, 'public', 'data', name, id);
+    }
+
+    async function syncSharedDoc(docId, payload) {
+      if (!db || !currentUserAuth) return;
+      try {
+        await setDoc(docRef('hub_state', docId), payload, { merge: true });
+      } catch (e) {
+        console.error('Sync error:', e);
+      }
+    }
+
+    async function initFirebase() {
+      if (!firebaseConfig) return;
+      try {
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+        currentUserAuth = auth.currentUser;
+        setupRealtimeListeners();
+      } catch (err) {
+        console.error('Firebase init fallback to local:', err);
+      }
+    }
+
+    function setupRealtimeListeners() {
+      if (!db || !currentUserAuth) return;
+
+      // 1. Profiles & Shared Hub State
+      onSnapshot(docRef('hub_state', 'core'), (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.profiles) state.profiles = { ...state.profiles, ...data.profiles };
+          if (data.pinnedMessageId !== undefined) state.pinnedMessageId = data.pinnedMessageId;
+          if (data.stickers) state.stickers = data.stickers;
+          if (data.quickWords) state.quickWords = data.quickWords;
+          if (data.pet) state.pet = { ...state.pet, ...data.pet };
+          if (data.games) {
+            state.games = { ...state.games, ...data.games };
+            if (typeof state.games.chess.board === 'string') {
+              state.games.chess.board = JSON.parse(state.games.chess.board);
+            }
+          }
+          if (data.wheelOptions) state.wheelOptions = data.wheelOptions;
+          if (data.calendarEvents) state.calendarEvents = data.calendarEvents;
+          if (data.callLogs) state.callLogs = data.callLogs;
+          updateLoginAvatars();
+          if (state.myRole) refreshAllUI();
+        }
+      }, (err) => console.error(err));
+
+      // 2. Real-time Chat Messages
+      onSnapshot(colRef('messages'), (snap) => {
+        const prevCount = state.messages.length;
+        const incoming = [];
+        snap.forEach((d) => incoming.push({ id: d.id, ...d.data() }));
+        incoming.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+        // Notify if new message from partner arrived
+        if (state.myRole && incoming.length > prevCount) {
+          const newest = incoming[incoming.length - 1];
+          if (newest && newest.sender !== state.myRole) {
+            showToast(`💬 ${newest.sender}: ${newest.type === 'text' ? newest.text : 'Sent an attachment'}`);
+            playBeep(660, 0.12);
+          }
+        }
+        state.messages = incoming;
+        if (state.myRole) {
+          markPartnerMessagesRead();
+          renderMessages();
+        }
+      }, (err) => console.error(err));
+
+      // 3. Joint Reminders
+      onSnapshot(colRef('reminders'), (snap) => {
+        const list = [];
+        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        state.reminders = list;
+        if (state.myRole) renderReminders();
+      }, (err) => console.error(err));
+
+      // 4. Polymarket Polls
+      onSnapshot(colRef('polls'), (snap) => {
+        const list = [];
+        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        state.polls = list;
+        if (state.myRole) renderPolymarket();
+      }, (err) => console.error(err));
+
+      // 5. Saved Drawings
+      onSnapshot(colRef('saved_drawings'), (snap) => {
+        const list = [];
+        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        state.savedDrawings = list;
+        if (state.myRole) renderSavedDrawings();
+      }, (err) => console.error(err));
+
+      // 6. Collaborative Canvas Live Sync
+      onSnapshot(docRef('hub_state', 'live_canvas'), (snap) => {
+        if (snap.exists() && snap.data().dataUrl && !state.isDrawing) {
+          loadDataUrlToCanvas(snap.data().dataUrl);
+        }
+      }, (err) => console.error(err));
+    }
+
+    function saveCoreState() {
+      const gamesCopy = JSON.parse(JSON.stringify(state.games));
+      if (Array.isArray(gamesCopy.chess.board)) {
+        gamesCopy.chess.board = JSON.stringify(gamesCopy.chess.board);
+      }
+      syncSharedDoc('core', {
+        profiles: state.profiles,
+        pinnedMessageId: state.pinnedMessageId,
+        stickers: state.stickers,
+        quickWords: state.quickWords,
+        pet: state.pet,
+        games: gamesCopy,
+        wheelOptions: state.wheelOptions,
+        calendarEvents: state.calendarEvents,
+        callLogs: state.callLogs
+      });
+    }
+
+    // -------------------- SOUND & TOAST UTILITIES --------------------
+    function playBeep(freq = 520, duration = 0.1) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.value = freq;
+        gain.gain.value = 0.08;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        setTimeout(() => { osc.stop(); ctx.close(); }, duration * 1000);
+      } catch (_) {}
+    }
+
+    window.showToast = function (msg) {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      el.className = 'pointer-events-auto bg-slate-900/95 text-white border border-indigo-500/40 px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center justify-between gap-3 transition-all';
+      el.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>`;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    };
+
+    function compressImage(file, maxWidth = 480) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const scale = Math.min(1, maxWidth / img.width);
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.78));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // -------------------- 1. ROLE LOGIN & PRIVACY LOCK --------------------
+    function updateLoginAvatars() {
+      document.getElementById('login-avatar-Cleo').src = state.profiles.Cleo.avatar;
+      document.getElementById('login-avatar-Keona').src = state.profiles.Keona.avatar;
+    }
+
+    window.selectLoginRole = function (role) {
+      state.pendingRole = role;
+      document.querySelectorAll('.role-card').forEach(c => c.classList.remove('border-indigo-500', 'border-pink-500', 'bg-slate-800'));
+      const btn = document.getElementById(role === 'Cleo' ? 'select-cleo-btn' : 'select-keona-btn');
+      btn.classList.add(role === 'Cleo' ? 'border-indigo-500' : 'border-pink-500', 'bg-slate-800');
+      document.getElementById('pin-entry-box').classList.remove('hidden');
+      document.getElementById('pin-prompt-title').textContent = `Enter ${role}'s Private PIN`;
+      document.getElementById('login-pin-input').value = '';
+      document.getElementById('login-pin-input').focus();
+    };
+
+    window.confirmRoleLogin = function () {
+      const role = state.pendingRole;
+      if (!role) return;
+      const enteredPin = document.getElementById('login-pin-input').value.trim();
+      const expectedPin = state.profiles[role].pin || '0000';
+      if (enteredPin !== expectedPin) {
+        showToast(`❌ Incorrect PIN for ${role}! (Default is 0000)`);
+        return;
+      }
+      state.myRole = role;
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-shell').classList.remove('hidden');
+      if (!state.games.chess.board) initChessBoardState();
+      markPartnerMessagesRead();
+      refreshAllUI();
+      showToast(`👋 Welcome back, ${role}!`);
+    };
+
+    window.logoutRole = function () {
+      state.myRole = null;
+      toggleDrawer(false);
+      document.getElementById('app-shell').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+    };
+
+    function getPartnerRole() {
+      return state.myRole === 'Cleo' ? 'Keona' : 'Cleo';
+    }
+
+    // -------------------- NAVIGATION & THEME --------------------
+    window.toggleDrawer = function (open) {
+      const drawer = document.getElementById('nav-drawer');
+      const backdrop = document.getElementById('nav-drawer-backdrop');
+      if (open) {
+        drawer.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+      } else {
+        drawer.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    };
+
+    window.switchView = function (viewName) {
+      toggleDrawer(false);
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+      const target = document.getElementById(`view-${viewName}`);
+      if (target) target.classList.remove('hidden');
+
+      if (viewName === 'canvas') setTimeout(resizeSharedCanvas, 50);
+      if (viewName === 'solo') drawWheel();
+      if (viewName === 'calendar') renderCalendar();
+      if (viewName === 'pet') renderPetSection();
+      if (viewName === 'gacha') { updateGachaPrices(); renderWardrobe(); }
+      if (viewName === 'games') { renderChessBoard(); renderChessHistory(); renderTicTacToe(); renderSnakesBoard(); }
+    };
+
+    window.toggleTheme = function () {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-indigo-500';
+      document.getElementById('theme-label').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+      applyChatWallpaper();
+    };
+
+    function refreshAllUI() {
+      if (!state.myRole) return;
+      const me = state.profiles[state.myRole];
+      const partner = state.profiles[getPartnerRole()];
+
+      document.getElementById('drawer-role-label').textContent = me.name;
+      document.getElementById('header-my-avatar').src = me.avatar;
+      document.getElementById('header-my-name').textContent = me.name;
+      document.getElementById('header-token-count').textContent = me.tokens;
+
+      document.getElementById('header-partner-avatar').src = partner.avatar;
+      document.getElementById('header-partner-name').textContent = partner.name;
+      document.getElementById('header-partner-bio-preview').textContent = partner.bio || 'No bio yet';
+      document.getElementById('header-streak-count').textContent = state.pet.streak;
+
+      document.getElementById('annual-wins-Cleo').textContent = state.games.annualWins.Cleo;
+      document.getElementById('annual-wins-Keona').textContent = state.games.annualWins.Keona;
+
+      applyChatWallpaper();
+      renderMessages();
+      renderStickersAndWords();
+      renderPetSection();
+      renderReminders();
+      renderCalendar();
+      renderPolymarket();
+      renderSavedDrawings();
+    }
+
+    // -------------------- PROFILE, BIO & WALLPAPER --------------------
+    window.openMyProfileModal = function () {
+      const me = state.profiles[state.myRole];
+      document.getElementById('modal-my-avatar').src = me.avatar;
+      document.getElementById('modal-my-bio').value = me.bio || '';
+      document.getElementById('modal-my-pin').value = me.pin || '0000';
+      document.getElementById('modal-read-receipts-toggle').checked = me.readReceipts !== false;
+      document.getElementById('my-profile-modal').classList.remove('hidden');
+    };
+
+    window.openPartnerProfileModal = function () {
+      const partner = state.profiles[getPartnerRole()];
+      document.getElementById('partner-modal-avatar').src = partner.avatar;
+      document.getElementById('partner-modal-name').textContent = partner.name;
+      document.getElementById('partner-modal-bio').textContent = partner.bio || 'No bio written yet.';
+      document.getElementById('partner-profile-modal').classList.remove('hidden');
+    };
+
+    window.closeModal = function (id) {
+      document.getElementById(id).classList.add('hidden');
+    };
+
+    window.handleProfileAvatarUpload = async function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const dataUrl = await compressImage(file, 250);
+      state.profiles[state.myRole].avatar = dataUrl;
+      document.getElementById('modal-my-avatar').src = dataUrl;
+      saveCoreState();
+      refreshAllUI();
+      showToast('📸 Profile photo updated!');
+    };
+
+    window.setChatWallpaper = function (preset) {
+      state.profiles[state.myRole].wallpaper = preset;
+      applyChatWallpaper();
+      saveCoreState();
+    };
+
+    window.handleWallpaperUpload = async function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const dataUrl = await compressImage(file, 900);
+      state.profiles[state.myRole].wallpaper = dataUrl;
+      applyChatWallpaper();
+      saveCoreState();
+      showToast('🖼️ Custom chat wallpaper set!');
+    };
+
+    function applyChatWallpaper() {
+      const el = document.getElementById('chat-messages-container');
+      const wp = state.profiles[state.myRole]?.wallpaper || 'default';
+      el.className = 'flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 bg-cover bg-center';
+      el.style.backgroundImage = '';
+
+      if (wp.startsWith('data:image')) {
+        el.style.backgroundImage = `url(${wp})`;
+      } else if (wp === 'aurora') {
+        el.classList.add('chat-bg-aurora');
+      } else if (wp === 'sakura') {
+        el.classList.add('chat-bg-sakura');
+      } else if (wp === 'ocean') {
+        el.classList.add('chat-bg-ocean');
+      } else {
+        const isDark = document.documentElement.classList.contains('dark');
+        el.classList.add(isDark ? 'chat-bg-default-dark' : 'chat-bg-default-light');
+      }
+    }
+
+    window.saveMyProfileSettings = function () {
+      const me = state.profiles[state.myRole];
+      me.bio = document.getElementById('modal-my-bio').value.trim();
+      const newPin = document.getElementById('modal-my-pin').value.trim();
+      if (newPin.length >= 4) me.pin = newPin;
+      me.readReceipts = document.getElementById('modal-read-receipts-toggle').checked;
+      saveCoreState();
+      refreshAllUI();
+      closeModal('my-profile-modal');
+      showToast('✅ Profile & privacy settings saved!');
+    };
+
+    // -------------------- 2. MESSAGING, READ RECEIPTS, PIN, EDIT, 1X VIEW --------------------
+    window.toggleChatSearch = function () {
+      const bar = document.getElementById('chat-search-bar');
+      bar.classList.toggle('hidden');
+      if (!bar.classList.contains('hidden')) document.getElementById('chat-search-input').focus();
+    };
+
+    window.refreshChatHistory = function () {
+      renderMessages();
+      showToast('🔄 Chat history refreshed!');
+    };
+
+    async function markPartnerMessagesRead() {
+      if (!state.myRole) return;
+      const me = state.profiles[state.myRole];
+      // Respect WhatsApp-style Read Receipts toggle!
+      if (me.readReceipts === false) return;
+
+      const partner = getPartnerRole();
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      for (const msg of state.messages) {
+        if (msg.sender === partner && !msg.readAt && !msg.deleted) {
+          msg.readAt = nowStr;
+          if (db && currentUserAuth) {
+            updateDoc(docRef('messages', msg.id), { readAt: nowStr }).catch(() => {});
+          }
+        }
+      }
+    }
+
+    window.sendMessage = async function (overridePayload = null) {
+      if (!state.myRole) return;
+      const input = document.getElementById('chat-message-input');
+      const text = overridePayload ? '' : input.value.trim();
+      if (!overridePayload && !text) return;
+
+      // Check if editing an existing sent message
+      if (state.editingMsgId && !overridePayload) {
+        const target = state.messages.find(m => m.id === state.editingMsgId);
+        if (target && target.sender === state.myRole) {
+          target.text = text;
+          target.edited = true;
+          if (db && currentUserAuth) {
+            await updateDoc(docRef('messages', target.id), { text, edited: true });
+          }
+          cancelEditMessage();
+          renderMessages();
+          showToast('✏️ Message edited!');
+          return;
+        }
+      }
+
+      const newMsg = {
+        sender: state.myRole,
+        type: overridePayload ? overridePayload.type : 'text',
+        text: overridePayload ? '' : text,
+        mediaUrl: overridePayload ? overridePayload.mediaUrl : '',
+        mediaKind: overridePayload ? (overridePayload.mediaKind || 'image') : '',
+        viewOnce: overridePayload ? !!overridePayload.viewOnce : false,
+        opened: false,
+        timestamp: Date.now(),
+        timeLabel: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        readAt: null,
+        edited: false,
+        deleted: false
+      };
+
+      if (!overridePayload) input.value = '';
+
+      // Award +1 Token per message sent & update daily streak
+      state.profiles[state.myRole].tokens += 1;
+      incrementDailyStreakOnChat();
+
+      if (db && currentUserAuth) {
+        await addDoc(colRef('messages'), newMsg);
+      } else {
+        newMsg.id = 'msg_' + Date.now();
+        state.messages.push(newMsg);
+        renderMessages();
+      }
+      saveCoreState();
+      refreshAllUI();
+    };
+
+    window.startEditMessage = function (msgId) {
+      const msg = state.messages.find(m => m.id === msgId);
+      if (!msg || msg.sender !== state.myRole || msg.type !== 'text') return;
+      state.editingMsgId = msgId;
+      document.getElementById('editing-banner').classList.remove('hidden');
+      const input = document.getElementById('chat-message-input');
+      input.value = msg.text;
+      input.focus();
+    };
+
+    window.cancelEditMessage = function () {
+      state.editingMsgId = null;
+      document.getElementById('editing-banner').classList.add('hidden');
+      document.getElementById('chat-message-input').value = '';
+    };
+
+    window.deleteOwnMessage = async function (msgId) {
+      const msg = state.messages.find(m => m.id === msgId);
+      if (!msg || msg.sender !== state.myRole) return;
+      msg.deleted = true;
+      msg.text = 'This message was deleted';
+      msg.mediaUrl = '';
+      if (db && currentUserAuth) {
+        await updateDoc(docRef('messages', msgId), { deleted: true, text: 'This message was deleted', mediaUrl: '' });
+      }
+      renderMessages();
+    };
+
+    window.pinMessage = function (msgId) {
+      state.pinnedMessageId = msgId;
+      saveCoreState();
+      renderMessages();
+      showToast('📌 Message pinned to top!');
+    };
+
+    window.unpinMessage = function () {
+      state.pinnedMessageId = null;
+      saveCoreState();
+      renderMessages();
+    };
+
+    window.scrollToPinnedMessage = function () {
+      if (!state.pinnedMessageId) return;
+      const el = document.getElementById(`msg-bubble-${state.pinnedMessageId}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    window.handleSendImage = async function (e, isViewOnce) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const dataUrl = await compressImage(file, 650);
+      await sendMessage({ type: 'image', mediaUrl: dataUrl, viewOnce: isViewOnce });
+      e.target.value = '';
+    };
+
+    window.openViewOncePhoto = async function (msgId) {
+      const msg = state.messages.find(m => m.id === msgId);
+      if (!msg || !msg.viewOnce) return;
+      if (msg.sender === state.myRole) {
+        showToast('🔒 You sent this 1x photo — only the recipient can open it.');
+        return;
+      }
+      if (msg.opened) {
+        showToast('💨 This View-Once photo has already been opened.');
+        return;
+      }
+      document.getElementById('view-once-img').src = msg.mediaUrl;
+      document.getElementById('view-once-modal').classList.remove('hidden');
+
+      msg.opened = true;
+      if (db && currentUserAuth) {
+        await updateDoc(docRef('messages', msgId), { opened: true });
+      }
+      renderMessages();
+    };
+
+    window.closeViewOnceModal = function () {
+      document.getElementById('view-once-img').src = '';
+      closeModal('view-once-modal');
+    };
+
+    function renderMessages() {
+      const container = document.getElementById('chat-messages-container');
+      const searchQuery = (document.getElementById('chat-search-input')?.value || '').trim().toLowerCase();
+
+      // Update Pinned Banner
+      const pinnedBanner = document.getElementById('pinned-message-banner');
+      const pinnedMsg = state.messages.find(m => m.id === state.pinnedMessageId && !m.deleted);
+      if (pinnedMsg) {
+        pinnedBanner.classList.remove('hidden');
+        document.getElementById('pinned-message-text').textContent = pinnedMsg.type === 'text' ? pinnedMsg.text : `[${pinnedMsg.type.toUpperCase()}]`;
+      } else {
+        pinnedBanner.classList.add('hidden');
+      }
+
+      const filtered = searchQuery
+        ? state.messages.filter(m => (m.text || '').toLowerCase().includes(searchQuery))
+        : state.messages;
+
+      container.innerHTML = filtered.map(m => {
+        const isMine = m.sender === state.myRole;
+        const alignClass = isMine ? 'justify-end' : 'justify-start';
+        const bubbleColor = isMine
+          ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-br-sm'
+          : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-bl-sm';
+
+        let bodyHtml = '';
+        if (m.deleted) {
+          bodyHtml = `<p class="italic text-xs opacity-70"><i class="fa-solid fa-ban mr-1"></i>This message was deleted</p>`;
+        } else if (m.type === 'image' && m.viewOnce) {
+          bodyHtml = `
+            <button onclick="openViewOncePhoto('${m.id}')" class="flex items-center gap-2 px-3 py-2 rounded-xl ${m.opened ? 'bg-black/20 opacity-60' : 'bg-amber-500/25 border border-amber-400/50'} text-xs font-bold">
+              <i class="fa-solid ${m.opened ? 'fa-circle-check' : 'fa-fire text-amber-400'}"></i>
+              <span>${m.opened ? 'Opened' : '1x View-Once Photo'}</span>
+            </button>`;
+        } else if (m.type === 'image') {
+          bodyHtml = `<img src="${m.mediaUrl}" class="max-w-[220px] sm:max-w-[260px] rounded-xl object-cover" />`;
+        } else if (m.type === 'sticker') {
+          bodyHtml = m.mediaKind === 'video'
+            ? `<video src="${m.mediaUrl}" autoplay loop muted playsinline class="w-28 h-28 rounded-xl object-cover"></video>`
+            : `<img src="${m.mediaUrl}" class="w-28 h-28 rounded-xl object-contain" />`;
+        } else {
+          bodyHtml = `<p class="text-sm break-words whitespace-pre-wrap">${escapeHtml(m.text)}</p>`;
+        }
+
+        // WhatsApp Checkmarks & Read Timestamp (only shown if partner hasn't disabled Read Receipts)
+        let receiptHtml = '';
+        if (isMine && !m.deleted) {
+          const partnerReceiptsOn = state.profiles[getPartnerRole()]?.readReceipts !== false;
+          if (m.readAt && partnerReceiptsOn) {
+            receiptHtml = `<span class="text-sky-300 font-semibold ml-1" title="Seen at ${m.readAt}"><i class="fa-solid fa-check-double"></i> ${m.readAt}</span>`;
+          } else {
+            receiptHtml = `<span class="opacity-70 ml-1" title="Delivered"><i class="fa-solid fa-check-double"></i></span>`;
+          }
+        }
+
+        const actionsHtml = !m.deleted ? `
+          <div class="opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5 text-[11px] text-slate-400 mt-1 ${isMine ? 'justify-end' : 'justify-start'}">
+            <button onclick="pinMessage('${m.id}')" title="Pin" class="hover:text-indigo-400"><i class="fa-solid fa-thumbtack"></i></button>
+            ${isMine && m.type === 'text' ? `<button onclick="startEditMessage('${m.id}')" title="Edit" class="hover:text-amber-400"><i class="fa-solid fa-pen"></i></button>` : ''}
+            ${isMine ? `<button onclick="deleteOwnMessage('${m.id}')" title="Delete" class="hover:text-rose-400"><i class="fa-solid fa-trash"></i></button>` : ''}
+          </div>` : '';
+
+        return `
+          <div id="msg-bubble-${m.id}" class="flex ${alignClass} group">
+            <div class="max-w-[78%] sm:max-w-[65%]">
+              <div class="${m.type === 'sticker' && !m.deleted ? '' : bubbleColor + ' px-3.5 py-2.5 rounded-2xl shadow-xs'}">
+                ${bodyHtml}
+                <div class="flex items-center justify-end gap-1 text-[10px] opacity-75 mt-1">
+                  ${m.edited && !m.deleted ? '<span>(edited)</span>' : ''}
+                  <span>${m.timeLabel || ''}</span>
+                  ${receiptHtml}
+                </div>
+              </div>
+              ${actionsHtml}
+            </div>
+          </div>`;
+      }).join('');
+
+      if (!searchQuery) container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // -------------------- STICKERS & QUICK-WORD BUILDER --------------------
+    window.toggleTray = function () {
+      document.getElementById('sticker-word-tray').classList.toggle('hidden');
+      renderStickersAndWords();
+    };
+
+    window.switchTrayTab = function (tab) {
+      const isStk = tab === 'stickers';
+      document.getElementById('tray-content-stickers').classList.toggle('hidden', !isStk);
+      document.getElementById('tray-content-words').classList.toggle('hidden', isStk);
+      document.getElementById('tab-btn-stickers').className = isStk ? 'px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white' : 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+      document.getElementById('tab-btn-words').className = !isStk ? 'px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white' : 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+    };
+
+    window.handleStickerUpload = async function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.type.startsWith('video/')) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          state.stickers.push({ id: 'stk_' + Date.now(), type: 'video', url: ev.target.result });
+          saveCoreState();
+          renderStickersAndWords();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        const dataUrl = await compressImage(file, 200);
+        state.stickers.push({ id: 'stk_' + Date.now(), type: 'image', url: dataUrl });
+        saveCoreState();
+        renderStickersAndWords();
+      }
+      e.target.value = '';
+    };
+
+    window.sendStickerItem = function (idx) {
+      const stk = state.stickers[idx];
+      if (!stk) return;
+      sendMessage({ type: 'sticker', mediaUrl: stk.url, mediaKind: stk.type });
+      toggleTray();
+    };
+
+    window.addQuickWord = function () {
+      const inp = document.getElementById('new-quick-word-input');
+      const word = inp.value.trim();
+      if (!word) return;
+      state.quickWords.push(word);
+      inp.value = '';
+      saveCoreState();
+      renderStickersAndWords();
+    };
+
+    window.appendQuickWordToBox = function (word) {
+      const box = document.getElementById('chat-message-input');
+      box.value = box.value ? `${box.value.trim()} ${word}` : word;
+      box.focus();
+    };
+
+    function renderStickersAndWords() {
+      const sGrid = document.getElementById('stickers-grid');
+      sGrid.innerHTML = state.stickers.map((s, i) => `
+        <button onclick="sendStickerItem(${i})" class="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:scale-105 transition aspect-square flex items-center justify-center overflow-hidden">
+          ${s.type === 'video'
+            ? `<video src="${s.url}" muted loop autoplay class="w-full h-full object-cover rounded-lg"></video>`
+            : `<img src="${s.url}" class="w-full h-full object-contain rounded-lg" />`}
+        </button>`).join('');
+
+      const wList = document.getElementById('quick-words-list');
+      wList.innerHTML = state.quickWords.map(w => `
+        <button onclick="appendQuickWordToBox('${escapeHtml(w)}')" class="px-3 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-600 hover:text-white text-indigo-400 text-xs font-bold transition active:scale-95">
+          ${escapeHtml(w)}
+        </button>`).join('');
+    }
+
+    // -------------------- VOICE & VIDEO CALLS + HISTORY --------------------
+    window.startCall = function (type) {
+      state.activeCallType = type;
+      state.callSeconds = 0;
+      const partner = state.profiles[getPartnerRole()];
+      document.getElementById('call-type-badge').textContent = type === 'video' ? 'Video Call' : 'Voice Call';
+      document.getElementById('call-partner-avatar').src = partner.avatar;
+      document.getElementById('call-partner-name').textContent = partner.name;
+      document.getElementById('call-video-preview').classList.toggle('hidden', type !== 'video');
+      document.getElementById('active-call-modal').classList.remove('hidden');
+
+      playBeep(440, 0.25);
+      clearInterval(state.callInterval);
+      state.callInterval = setInterval(() => {
+        state.callSeconds++;
+        const mins = String(Math.floor(state.callSeconds / 60)).padStart(2, '0');
+        const secs = String(state.callSeconds % 60).padStart(2, '0');
+        document.getElementById('call-timer-text').textContent = `${mins}:${secs} • Connected`;
+      }, 1000);
+    };
+
+    window.endActiveCall = function () {
+      clearInterval(state.callInterval);
+      closeModal('active-call-modal');
+      state.callLogs.unshift({
+        caller: state.myRole,
+        receiver: getPartnerRole(),
+        type: state.activeCallType,
+        duration: `${state.callSeconds}s`,
+        time: new Date().toLocaleString()
+      });
+      saveCoreState();
+      showToast(`📞 Call ended (${state.callSeconds}s)`);
+    };
+
+    window.openCallHistoryModal = function () {
+      const list = document.getElementById('call-history-list');
+      list.innerHTML = state.callLogs.length
+        ? state.callLogs.map(c => `
+          <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-between">
+            <div>
+              <span class="font-bold">${c.caller} → ${c.receiver}</span>
+              <span class="block text-[11px] text-slate-400">${c.time}</span>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 font-bold">${c.type.toUpperCase()} • ${c.duration}</span>
+          </div>`).join('')
+        : '<p class="text-slate-400 text-center py-4">No call history yet.</p>';
+      document.getElementById('call-history-modal').classList.remove('hidden');
+    };
+
+    // -------------------- STREAK PET, HEARTS, REVIVES & BIRTHDAY --------------------
+    function incrementDailyStreakOnChat() {
+      const today = new Date().toISOString().slice(0, 10);
+      if (state.pet.lastChatDate !== today) {
+        state.pet.lastChatDate = today;
+        state.pet.streak += 1;
+        state.pet.hearts = Math.min(5, Math.floor(state.pet.streak / 30));
+      }
+    }
+
+    window.simulateStreakDay = function () {
+      state.pet.streak += 1;
+      state.pet.hearts = Math.min(5, Math.floor(state.pet.streak / 30));
+      saveCoreState();
+      refreshAllUI();
+      showToast(`🔥 Streak is now ${state.pet.streak} days!`);
+    };
+
+    window.simulateLoseStreak = function () {
+      state.pet.streak = 0;
+      state.pet.hearts = Math.max(0, state.pet.hearts - 1);
+      saveCoreState();
+      refreshAllUI();
+      showToast('💔 Streak lost! Pet got upset (-1 Heart). Chat 3 days to re-unlock or use a Revive!');
+    };
+
+    window.useStreakRevive = function () {
+      if (state.pet.revives <= 0) {
+        showToast('❌ No revives left this month (0/3)!');
+        return;
+      }
+      state.pet.revives -= 1;
+      state.pet.streak = Math.max(3, state.pet.streak + 1);
+      saveCoreState();
+      refreshAllUI();
+      showToast(`✨ Streak revived! (${state.pet.revives}/3 revives remaining this month)`);
+    };
+
+    window.triggerPetBirthdayCheck = function () {
+      if (!state.pet.birthdayInteractedToday) {
+        state.pet.revives = Math.max(0, state.pet.revives - 1);
+        saveCoreState();
+        refreshAllUI();
+        showToast('🎂 On Pet Birthday, streak is safe—but nobody cared for the pet so 1 Revive was deducted!');
+      } else {
+        showToast('🎂 Happy Pet Birthday! You interacted with your pet today so your revives & streak are safe!');
+      }
+    };
+
+    window.promptRenamePet = function () {
+      const weekMs = 7 * 24 * 60 * 60 * 1000;
+      const elapsed = Date.now() - (state.pet.lastRenameTime || 0);
+      if (elapsed < weekMs) {
+        const daysLeft = Math.ceil((weekMs - elapsed) / (24 * 60 * 60 * 1000));
+        showToast(`⏳ You can only rename your pet once a week! (${daysLeft} day(s) left)`);
+        return;
+      }
+      const nextName = prompt('Enter a new name for your Streak Pet:', state.pet.name);
+      if (nextName && nextName.trim()) {
+        state.pet.name = nextName.trim();
+        state.pet.lastRenameTime = Date.now();
+        saveCoreState();
+        renderPetSection();
+        showToast(`🐾 Pet renamed to ${state.pet.name}!`);
+      }
+    };
+
+    window.interactWithPet = function (action) {
+      state.pet.birthdayInteractedToday = true;
+      const lines = {
+        pet: `${state.pet.name} purrs happily! 💕`,
+        feed: `Yum! ${state.pet.name} loved the snack! 🍓`,
+        bathe: `Sparkly clean! ${state.pet.name} smells like lavender 🫧`,
+        play: `${state.pet.name} bounced with joy! 🎾`,
+        study: `${state.pet.name} read a smart book! 📚`,
+        sleep: `Zzz... ${state.pet.name} is taking a cozy nap 🌙`
+      };
+      document.getElementById('pet-mood-bubble').textContent = `"${lines[action] || lines.pet}"`;
+      playBeep(740, 0.08);
+      saveCoreState();
+    };
+
+    function renderPetSection() {
+      const p = state.pet;
+      document.getElementById('pet-streak-days').textContent = p.streak;
+      document.getElementById('egg-streak-progress').textContent = p.streak;
+      document.getElementById('pet-revives-left').textContent = p.revives;
+      document.getElementById('pet-name-heading').textContent = p.name;
+
+      // Hearts display (0/5)
+      const full = '❤️'.repeat(p.hearts);
+      const empty = '🤍'.repeat(5 - p.hearts);
+      document.getElementById('pet-hearts-display').textContent = `${full}${empty} (${p.hearts}/5)`;
+
+      // Unlock check (3 days)
+      document.getElementById('pet-locked-overlay').classList.toggle('hidden', p.streak >= 3);
+
+      // Rename cooldown
+      const weekMs = 7 * 24 * 60 * 60 * 1000;
+      const rem = weekMs - (Date.now() - (p.lastRenameTime || 0));
+      document.getElementById('pet-rename-cooldown').textContent = rem > 0 ? `(Rename locked: ${Math.ceil(rem / 86400000)}d)` : '(Rename available)';
+
+      // Equipped Outfit Visual
+      const outfit = OUTFIT_CATALOG[p.equippedOutfitId] || OUTFIT_CATALOG[0];
+      document.getElementById('pet-equipped-outfit-name').textContent = `${outfit.name} [${outfit.rarity}]`;
+
+      document.getElementById('pet-svg-stage').innerHTML = `
+        <svg viewBox="0 0 160 160" class="w-full h-full">
+          <circle cx="80" cy="92" r="46" fill="#fff1f2" stroke="#fda4af" stroke-width="4" />
+          <polygon points="42,58 55,22 72,52" fill="#ffe4e6" stroke="#fda4af" stroke-width="3" />
+          <polygon points="118,58 105,22 88,52" fill="#ffe4e6" stroke="#fda4af" stroke-width="3" />
+          <!-- Outfit Cloak/Shirt -->
+          <path d="M40 112 Q80 96 120 112 L114 136 Q80 144 46 136 Z" fill="${outfit.color}" />
+          <!-- Hat/Crown Accessory -->
+          ${outfit.accessory === 'crown' ? '<polygon points="62,44 70,26 80,40 90,26 98,44" fill="#facc15" />' : ''}
+          ${outfit.accessory === 'halo' ? '<ellipse cx="80" cy="22" rx="22" ry="6" fill="none" stroke="#fde047" stroke-width="3" />' : ''}
+          ${outfit.accessory === 'bow' ? '<circle cx="80" cy="108" r="6" fill="#f43f5e" />' : ''}
+          <!-- Cute Face -->
+          <circle cx="64" cy="84" r="5" fill="#1e293b" />
+          <circle cx="96" cy="84" r="5" fill="#1e293b" />
+          <circle cx="54" cy="92" r="5" fill="#fda4af" opacity="0.7" />
+          <circle cx="106" cy="92" r="5" fill="#fda4af" opacity="0.7" />
+          <path d="M74 92 Q80 98 86 92" fill="none" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+        </svg>`;
+    }
+
+    // -------------------- GACHA SYSTEM (2,510 OUTFITS + JULY 8 & OCT 20 20% DISCOUNT) --------------------
+    function isDiscountActive() {
+      const sim = document.getElementById('simulate-discount-date')?.checked;
+      if (sim) return true;
+      const now = new Date();
+      const m = now.getMonth() + 1;
+      const d = now.getDate();
+      return (m === 7 && d === 8) || (m === 10 && d === 20);
+    }
+
+    window.updateGachaPrices = function () {
+      const disc = isDiscountActive();
+      document.getElementById('pull-1-cost').textContent = disc ? '4' : '5';
+      document.getElementById('pull-10-cost').textContent = disc ? '40' : '50';
+    };
+
+    window.pullGacha = function (count) {
+      const disc = isDiscountActive();
+      const cost = count === 1 ? (disc ? 4 : 5) : (disc ? 40 : 50);
+      const me = state.profiles[state.myRole];
+      if (me.tokens < cost) {
+        showToast(`🪙 Need ${cost} Tokens! Chat (+1) or win games (+50) to earn more.`);
+        return;
+      }
+      me.tokens -= cost;
+
+      const pulled = [];
+      for (let i = 0; i < count; i++) {
+        const r = Math.random() * 100;
+        let minId = 0, maxId = 999; // Common (0..999)
+        if (r < 0.5) { minId = 2500; maxId = 2509; } // Mystery (10)
+        else if (r < 5.5) { minId = 2250; maxId = 2499; } // Legendary (250)
+        else if (r < 20.5) { minId = 1750; maxId = 2249; } // Rare (500)
+        else if (r < 50.5) { minId = 1000; maxId = 1749; } // Uncommon (750)
+
+        const pickedId = Math.floor(Math.random() * (maxId - minId + 1)) + minId;
+        if (!state.pet.unlockedOutfitIds.includes(pickedId)) {
+          state.pet.unlockedOutfitIds.push(pickedId);
+        }
+        pulled.push(OUTFIT_CATALOG[pickedId]);
+      }
+
+      saveCoreState();
+      refreshAllUI();
+      renderWardrobe();
+
+      const resPanel = document.getElementById('gacha-result-panel');
+      const resGrid = document.getElementById('gacha-results-grid');
+      resPanel.classList.remove('hidden');
+      resGrid.innerHTML = pulled.map(item => `
+        <div class="gacha-reveal p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-indigo-500/30 text-center space-y-1">
+          <div class="w-8 h-8 rounded-full mx-auto" style="background:${item.color}"></div>
+          <span class="text-[10px] font-black uppercase text-amber-400 block">${item.rarity}</span>
+          <p class="text-xs font-bold truncate">${item.name}</p>
+        </div>`).join('');
+      playBeep(880, 0.15);
+    };
+
+    window.renderWardrobe = function () {
+      const filter = document.getElementById('wardrobe-filter').value;
+      const unlocked = state.pet.unlockedOutfitIds.map(id => OUTFIT_CATALOG[id]).filter(Boolean);
+      document.getElementById('wardrobe-count').textContent = unlocked.length;
+
+      const shown = filter === 'ALL' ? unlocked : unlocked.filter(o => o.rarity === filter);
+      document.getElementById('wardrobe-grid').innerHTML = shown.map(o => {
+        const equipped = state.pet.equippedOutfitId === o.id;
+        return `
+          <div class="p-3 rounded-2xl border ${equipped ? 'border-indigo-500 bg-indigo-500/10' : 'border-slate-200 dark:border-slate-800'} flex flex-col justify-between gap-2 text-center">
+            <div class="w-9 h-9 rounded-full mx-auto shadow" style="background:${o.color}"></div>
+            <div>
+              <span class="text-[10px] font-bold uppercase text-purple-400 block">${o.rarity}</span>
+              <p class="text-xs font-bold truncate">${o.name}</p>
+            </div>
+            <button onclick="equipPetOutfit(${o.id})" class="w-full py-1.5 rounded-xl text-xs font-bold ${equipped ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white'}">
+              ${equipped ? 'Equipped' : 'Wear'}
+            </button>
+          </div>`;
+      }).join('');
+    };
+
+    window.equipPetOutfit = function (id) {
+      state.pet.equippedOutfitId = id;
+      saveCoreState();
+      renderPetSection();
+      renderWardrobe();
+      showToast('👗 Pet outfit changed!');
+    };
+
+    // -------------------- MULTIPLAYER GAMES & +50 TOKEN REWARDS --------------------
+    function awardGameWinner(winnerRole, gameLabel) {
+      if (!winnerRole || !state.profiles[winnerRole]) return;
+      state.profiles[winnerRole].tokens += 50;
+      state.games.annualWins[winnerRole] = (state.games.annualWins[winnerRole] || 0) + 1;
+      saveCoreState();
+      refreshAllUI();
+      showToast(`🏆 ${winnerRole} won ${gameLabel} and earned +50 Tokens!`);
+    }
+
+    window.claimYearlyChampionBonus = function () {
+      const cWins = state.games.annualWins.Cleo || 0;
+      const kWins = state.games.annualWins.Keona || 0;
+      if (cWins === 0 && kWins === 0) {
+        showToast('No games won yet this year!');
+        return;
+      }
+      const champ = cWins >= kWins ? 'Cleo' : 'Keona';
+      state.profiles[champ].tokens += 500;
+      state.games.annualWins = { Cleo: 0, Keona: 0 };
+      saveCoreState();
+      refreshAllUI();
+      showToast(`👑 ${champ} is the Annual Champion (+500 Tokens)! Yearly counters reset.`);
+    };
+
+    window.selectMultiplayerGame = function (game) {
+      document.querySelectorAll('.mp-game-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`mp-game-${game}`).classList.remove('hidden');
+      document.querySelectorAll('.game-tab-btn').forEach(b => {
+        b.className = 'game-tab-btn p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm flex items-center justify-center gap-2';
+      });
+      document.getElementById(`game-tab-${game}`).className = 'game-tab-btn p-3 rounded-2xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow';
+    };
+
+    // --- CHESS ---
+    const CHESS_GLYPHS = {
+      wK: '♔', wQ: '♕', wR: '♖', wB: '♗', wN: '♘', wP: '♙',
+      bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟'
+    };
+
+    function initChessBoardState() {
+      state.games.chess.board = [
+        ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+        ['bP','bP','bP','bP','bP','bP','bP','bP'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['wP','wP','wP','wP','wP','wP','wP','wP'],
+        ['wR','wN','wB','wQ','wK','wB','wN','wR']
+      ];
+      state.games.chess.turn = 'white';
+    }
+
+    window.setChessSide = function (side) {
+      if (side === 'white') {
+        state.games.chess.whitePlayer = state.myRole;
+        state.games.chess.blackPlayer = getPartnerRole();
+      } else {
+        state.games.chess.blackPlayer = state.myRole;
+        state.games.chess.whitePlayer = getPartnerRole();
+      }
+      saveCoreState();
+      renderChessBoard();
+    };
+
+    window.resetChessBoard = function () {
+      initChessBoardState();
+      state.selectedChessSq = null;
+      saveCoreState();
+      renderChessBoard();
+    };
+
+    window.refreshChessHistoryLocal = function () {
+      state.localChessRefreshSeed++;
+      renderChessHistory();
+      showToast('🔄 Chess history refreshed for your view!');
+    };
+
+    function renderChessBoard() {
+      if (!state.games.chess.board) initChessBoardState();
+      const ch = state.games.chess;
+      document.getElementById('chess-white-player').textContent = ch.whitePlayer;
+      document.getElementById('chess-black-player').textContent = ch.blackPlayer;
+      document.getElementById('chess-turn-badge').textContent = `${ch.turn === 'white' ? 'White (' + ch.whitePlayer + ')' : 'Black (' + ch.blackPlayer + ')'}'s Turn`;
+
+      const boardEl = document.getElementById('chess-board');
+      let html = '';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = ch.board[r][c];
+          const isLight = (r + c) % 2 === 0;
+          const isSel = state.selectedChessSq && state.selectedChessSq.r === r && state.selectedChessSq.c === c;
+          const bg = isSel ? 'bg-amber-400' : (isLight ? 'bg-slate-200' : 'bg-indigo-900/80');
+          const txtColor = piece.startsWith('w') ? 'text-slate-900 drop-shadow' : 'text-slate-950';
+          html += `<div onclick="onChessSquareClick(${r},${c})" class="${bg} flex items-center justify-center text-2xl sm:text-3xl cursor-pointer hover:opacity-90 ${txtColor}">${CHESS_GLYPHS[piece] || ''}</div>`;
+        }
+      }
+      boardEl.innerHTML = html;
+      renderChessHistory();
+    }
+
+    window.onChessSquareClick = function (r, c) {
+      const ch = state.games.chess;
+      const mySide = ch.whitePlayer === state.myRole ? 'white' : 'black';
+      if (ch.turn !== mySide) {
+        showToast(`⏳ Wait for ${ch.turn === 'white' ? ch.whitePlayer : ch.blackPlayer}'s move!`);
+        return;
+      }
+      const piece = ch.board[r][c];
+      const myPrefix = mySide === 'white' ? 'w' : 'b';
+
+      if (state.selectedChessSq) {
+        const sr = state.selectedChessSq.r;
+        const sc = state.selectedChessSq.c;
+        if (sr === r && sc === c) {
+          state.selectedChessSq = null;
+          renderChessBoard();
+          return;
+        }
+        if (piece && piece.startsWith(myPrefix)) {
+          state.selectedChessSq = { r, c };
+          renderChessBoard();
+          return;
+        }
+        const movingPiece = ch.board[sr][sc];
+        const targetPiece = ch.board[r][c];
+        ch.board[r][c] = movingPiece;
+        ch.board[sr][sc] = '';
+        state.selectedChessSq = null;
+
+        // Check King capture for victory
+        if (targetPiece === 'wK' || targetPiece === 'bK') {
+          const winner = state.myRole;
+          const loser = getPartnerRole();
+          ch.history.unshift({
+            date: new Date().toLocaleDateString(),
+            white: ch.whitePlayer,
+            black: ch.blackPlayer,
+            winner,
+            loser
+          });
+          awardGameWinner(winner, 'Chess');
+          initChessBoardState();
+        } else {
+          ch.turn = ch.turn === 'white' ? 'black' : 'white';
+        }
+        saveCoreState();
+        renderChessBoard();
+      } else if (piece && piece.startsWith(myPrefix)) {
+        state.selectedChessSq = { r, c };
+        renderChessBoard();
+      }
+    };
+
+    function renderChessHistory() {
+      const list = document.getElementById('chess-history-list');
+      const hist = state.games.chess.history || [];
+      list.innerHTML = hist.length
+        ? hist.map(h => `
+          <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <span class="font-bold text-emerald-400">Won: ${h.winner}</span> • <span class="text-rose-400">Lost: ${h.loser}</span>
+              <span class="block text-[10px] text-slate-400">♔ ${h.white} vs ♚ ${h.black} • ${h.date}</span>
+            </div>
+            <span class="text-amber-400 font-bold">+50 🪙</span>
+          </div>`).join('')
+        : '<p class="text-slate-400 text-center py-6">No completed chess matches yet.</p>';
+    }
+
+    // --- PING PONG ---
+    let pongAnim = null;
+    window.startPongMatch = function () {
+      const canvas = document.getElementById('pong-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 300;
+      canvas.height = 400;
+      let ball = { x: 150, y: 200, vx: 3, vy: 3.5, r: 7 };
+      let p1X = 115, p2X = 115, pW = 70, pH = 10;
+      let s1 = 0, s2 = 0;
+
+      const movePaddle = (clientX) => {
+        const rect = canvas.getBoundingClientRect();
+        const relX = ((clientX - rect.left) / rect.width) * canvas.width - pW / 2;
+        p1X = Math.max(0, Math.min(canvas.width - pW, relX));
+      };
+      canvas.onmousemove = (e) => movePaddle(e.clientX);
+      canvas.ontouchmove = (e) => { e.preventDefault(); movePaddle(e.touches[0].clientX); };
+
+      cancelAnimationFrame(pongAnim);
+      function loop() {
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, 300, 400);
+        ctx.strokeStyle = '#1e293b';
+        ctx.beginPath(); ctx.moveTo(0, 200); ctx.lineTo(300, 200); ctx.stroke();
+
+        // Top paddle AI/partner tracking
+        p2X += ((ball.x - pW / 2) - p2X) * 0.085;
+        p2X = Math.max(0, Math.min(230, p2X));
+
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        if (ball.x < 7 || ball.x > 293) ball.vx *= -1;
+
+        // Paddle collisions
+        if (ball.y > 372 && ball.x > p1X && ball.x < p1X + pW) ball.vy = -Math.abs(ball.vy) * 1.03;
+        if (ball.y < 28 && ball.x > p2X && ball.x < p2X + pW) ball.vy = Math.abs(ball.vy) * 1.03;
+
+        if (ball.y > 400) { s2++; ball = { x: 150, y: 200, vx: 3, vy: -3.5, r: 7 }; }
+        if (ball.y < 0) { s1++; ball = { x: 150, y: 200, vx: -3, vy: 3.5, r: 7 }; }
+
+        ctx.fillStyle = '#ec4899'; ctx.fillRect(p2X, 15, pW, pH);
+        ctx.fillStyle = '#6366f1'; ctx.fillRect(p1X, 375, pW, pH);
+        ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 14px Inter';
+        ctx.fillText(`${getPartnerRole()}: ${s2}`, 12, 185);
+        ctx.fillText(`${state.myRole}: ${s1}`, 12, 222);
+
+        if (s1 >= 5 || s2 >= 5) {
+          const winner = s1 >= 5 ? state.myRole : getPartnerRole();
+          awardGameWinner(winner, 'Ping Pong');
+          return;
+        }
+        pongAnim = requestAnimationFrame(loop);
+      }
+      loop();
+    };
+
+    // --- TIC TAC TOE ---
+    function renderTicTacToe() {
+      const ttt = state.games.tictactoe;
+      document.getElementById('ttt-status').textContent = `Turn: ${ttt.turn}`;
+      document.getElementById('ttt-board').innerHTML = ttt.board.map((cell, idx) => `
+        <button onclick="playTicTacToe(${idx})" class="rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/20 font-display text-4xl font-bold flex items-center justify-center ${cell === 'X' ? 'text-indigo-400' : 'text-pink-400'}">
+          ${cell}
+        </button>`).join('');
+    }
+
+    window.playTicTacToe = function (idx) {
+      const ttt = state.games.tictactoe;
+      if (ttt.board[idx]) return;
+      const myMark = state.myRole === 'Cleo' ? 'X' : 'O';
+      if (ttt.turn !== myMark) {
+        showToast(`Wait for ${ttt.turn === 'X' ? 'Cleo' : 'Keona'}!`);
+        return;
+      }
+      ttt.board[idx] = myMark;
+      const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      const won = wins.some(([a,b,c]) => ttt.board[a] && ttt.board[a] === ttt.board[b] && ttt.board[a] === ttt.board[c]);
+      if (won) {
+        awardGameWinner(state.myRole, 'Tic-Tac-Toe');
+        ttt.board = Array(9).fill('');
+        ttt.turn = 'X';
+      } else if (!ttt.board.includes('')) {
+        showToast('🤝 Tic-Tac-Toe Draw!');
+        ttt.board = Array(9).fill('');
+        ttt.turn = 'X';
+      } else {
+        ttt.turn = ttt.turn === 'X' ? 'O' : 'X';
+      }
+      saveCoreState();
+      renderTicTacToe();
+    };
+
+    window.resetTicTacToe = function () {
+      state.games.tictactoe = { board: Array(9).fill(''), turn: 'X' };
+      saveCoreState();
+      renderTicTacToe();
+    };
+
+    // --- SNAKES & LADDERS ---
+    const SNAKES_JUMPS = { 4: 25, 13: 46, 33: 49, 50: 69, 62: 81, 27: 5, 43: 18, 66: 45, 89: 53, 98: 64 };
+    function renderSnakesBoard() {
+      const sn = state.games.snakes;
+      document.getElementById('snakes-pos-Cleo').textContent = sn.positions.Cleo;
+      document.getElementById('snakes-pos-Keona').textContent = sn.positions.Keona;
+      document.getElementById('snakes-turn-label').textContent = `${sn.turn}'s Roll`;
+
+      let html = '';
+      for (let sq = 100; sq >= 1; sq--) {
+        const jump = SNAKES_JUMPS[sq];
+        const bg = jump ? (jump > sq ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400') : (sq % 2 === 0 ? 'bg-slate-100 dark:bg-slate-800' : 'bg-white dark:bg-slate-900');
+        const cHere = sn.positions.Cleo === sq ? '🔵' : '';
+        const kHere = sn.positions.Keona === sq ? '🩷' : '';
+        html += `<div class="${bg} border border-slate-200/40 dark:border-slate-800 flex flex-col items-center justify-center p-0.5">
+          <span>${sq}</span>
+          <span class="text-xs leading-none">${cHere}${kHere}</span>
+        </div>`;
+      }
+      document.getElementById('snakes-board').innerHTML = html;
+    }
+
+    window.rollSnakesDice = function () {
+      const sn = state.games.snakes;
+      if (sn.turn !== state.myRole) {
+        showToast(`⏳ It's ${sn.turn}'s turn to roll!`);
+        return;
+      }
+      const roll = Math.floor(Math.random() * 6) + 1;
+      document.getElementById('snakes-dice-val').textContent = roll;
+      let next = Math.min(100, sn.positions[state.myRole] + roll);
+      if (SNAKES_JUMPS[next]) next = SNAKES_JUMPS[next];
+      sn.positions[state.myRole] = next;
+
+      if (next >= 100) {
+        awardGameWinner(state.myRole, 'Snakes & Ladders');
+        sn.positions = { Cleo: 1, Keona: 1 };
+        sn.turn = 'Cleo';
+      } else {
+        sn.turn = getPartnerRole();
+      }
+      saveCoreState();
+      renderSnakesBoard();
+    };
+
+    window.resetSnakesGame = function () {
+      state.games.snakes = { positions: { Cleo: 1, Keona: 1 }, turn: 'Cleo' };
+      saveCoreState();
+      renderSnakesBoard();
+    };
+
+    // -------------------- SOLO GAMES (COIN & SPIN THE WHEEL) --------------------
+    window.flipSoloCoin = function () {
+      const el = document.getElementById('coin-visual');
+      el.classList.remove('coin-anim');
+      void el.offsetWidth;
+      el.classList.add('coin-anim');
+      const res = Math.random() < 0.5 ? 'HEADS' : 'TAILS';
+      setTimeout(() => {
+        el.textContent = res;
+        document.getElementById('coin-result-text').textContent = `Result: ${res}!`;
+      }, 600);
+    };
+
+    let wheelAngle = 0;
+    function drawWheel() {
+      const canvas = document.getElementById('wheel-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const opts = state.wheelOptions.length ? state.wheelOptions : ['Option 1', 'Option 2'];
+      const arc = (Math.PI * 2) / opts.length;
+      const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#06b6d4', '#8b5cf6'];
+
+      ctx.clearRect(0, 0, 240, 240);
+      opts.forEach((label, i) => {
+        const angle = wheelAngle + i * arc;
+        ctx.beginPath();
+        ctx.moveTo(120, 120);
+        ctx.arc(120, 120, 115, angle, angle + arc);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.save();
+        ctx.translate(120, 120);
+        ctx.rotate(angle + arc / 2);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px Inter';
+        ctx.fillText(label.slice(0, 12), 45, 4);
+        ctx.restore();
+      });
+
+      document.getElementById('wheel-options-tags').innerHTML = state.wheelOptions.map((o, i) => `
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs">
+          ${escapeHtml(o)}
+          <button onclick="removeWheelOption(${i})" class="text-rose-400 font-bold ml-1">×</button>
+        </span>`).join('');
+    }
+
+    window.addWheelOption = function () {
+      const inp = document.getElementById('wheel-new-option');
+      if (!inp.value.trim()) return;
+      state.wheelOptions.push(inp.value.trim());
+      inp.value = '';
+      saveCoreState();
+      drawWheel();
+    };
+
+    window.removeWheelOption = function (idx) {
+      if (state.wheelOptions.length <= 2) return;
+      state.wheelOptions.splice(idx, 1);
+      saveCoreState();
+      drawWheel();
+    };
+
+    window.spinCustomWheel = function () {
+      let speed = 0.35 + Math.random() * 0.25;
+      function animate() {
+        wheelAngle += speed;
+        speed *= 0.975;
+        drawWheel();
+        if (speed > 0.003) {
+          requestAnimationFrame(animate);
+        } else {
+          const opts = state.wheelOptions;
+          const arc = (Math.PI * 2) / opts.length;
+          const normalized = ((Math.PI * 1.5 - wheelAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+          const idx = Math.floor(normalized / arc) % opts.length;
+          document.getElementById('wheel-winner-text').textContent = `🎉 Landed on: ${opts[idx]}!`;
+        }
+      }
+      animate();
+    };
+
+    // -------------------- POLYMARKET BETTING --------------------
+    window.createPolymarketPoll = async function () {
+      const q = document.getElementById('poly-question').value.trim();
+      const optA = document.getElementById('poly-opt-a').value.trim();
+      const optB = document.getElementById('poly-opt-b').value.trim();
+      if (!q || !optA || !optB) {
+        showToast('Fill in the question and both options!');
+        return;
+      }
+      const poll = {
+        question: q,
+        optA,
+        optB,
+        bets: { Cleo: null, Keona: null },
+        resolvedWinner: null,
+        createdAt: Date.now()
+      };
+      document.getElementById('poly-question').value = '';
+      document.getElementById('poly-opt-a').value = '';
+      document.getElementById('poly-opt-b').value = '';
+
+      if (db && currentUserAuth) {
+        await addDoc(colRef('polls'), poll);
+      } else {
+        poll.id = 'poll_' + Date.now();
+        state.polls.unshift(poll);
+        renderPolymarket();
+      }
+    };
+
+    window.placePolymarketBet = async function (pollId, choice) {
+      const poll = state.polls.find(p => p.id === pollId);
+      if (!poll || poll.resolvedWinner) return;
+      const amtInput = document.getElementById(`bet-amt-${pollId}`);
+      const amount = parseInt(amtInput.value, 10);
+      if (!amount || amount <= 0) {
+        showToast('Enter a valid token amount to bet!');
+        return;
+      }
+      const me = state.profiles[state.myRole];
+      if (me.tokens < amount) {
+        showToast('❌ Not enough tokens!');
+        return;
+      }
+      me.tokens -= amount;
+      poll.bets[state.myRole] = { choice, amount };
+      saveCoreState();
+      if (db && currentUserAuth) {
+        await updateDoc(docRef('polls', pollId), { bets: poll.bets });
+      }
+      refreshAllUI();
+      showToast(`🎲 Bet ${amount} Tokens on ${choice === 'A' ? poll.optA : poll.optB}!`);
+    };
+
+    window.resolvePolymarketPoll = async function (pollId, winningSide) {
+      const poll = state.polls.find(p => p.id === pollId);
+      if (!poll || poll.resolvedWinner) return;
+      const cBet = poll.bets.Cleo;
+      const kBet = poll.bets.Keona;
+      const totalPot = (cBet?.amount || 0) + (kBet?.amount || 0);
+
+      let winnerRole = null;
+      if (cBet && cBet.choice === winningSide) winnerRole = 'Cleo';
+      else if (kBet && kBet.choice === winningSide) winnerRole = 'Keona';
+
+      poll.resolvedWinner = winningSide;
+      if (winnerRole && totalPot > 0) {
+        state.profiles[winnerRole].tokens += totalPot;
+        showToast(`💰 ${winnerRole} won the entire pot of ${totalPot} Tokens!`);
+      }
+      saveCoreState();
+      if (db && currentUserAuth) {
+        await updateDoc(docRef('polls', pollId), { resolvedWinner: winningSide });
+      }
+      refreshAllUI();
+    };
+
+    function renderPolymarket() {
+      const list = document.getElementById('polymarket-polls-list');
+      list.innerHTML = state.polls.map(p => {
+        const cBet = p.bets?.Cleo;
+        const kBet = p.bets?.Keona;
+        const pot = (cBet?.amount || 0) + (kBet?.amount || 0);
+        return `
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-bold text-base">${escapeHtml(p.question)}</h4>
+              <span class="px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 text-xs font-bold shrink-0">Pot: ${pot} 🪙</span>
+            </div>
+            <div class="text-xs text-slate-400 flex flex-wrap gap-3">
+              <span>Cleo: ${cBet ? `${cBet.amount} tokens on "${cBet.choice === 'A' ? p.optA : p.optB}"` : 'No bet yet'}</span>
+              <span>•</span>
+              <span>Keona: ${kBet ? `${kBet.amount} tokens on "${kBet.choice === 'A' ? p.optA : p.optB}"` : 'No bet yet'}</span>
+            </div>
+            ${p.resolvedWinner ? `
+              <div class="p-3 rounded-2xl bg-emerald-500/15 text-emerald-400 text-xs font-bold">
+                ✅ Settled! Winning option: ${p.resolvedWinner === 'A' ? p.optA : p.optB}
+              </div>` : `
+              <div class="flex flex-wrap items-center gap-2 pt-1">
+                <input id="bet-amt-${p.id}" type="number" min="1" placeholder="Tokens" class="w-24 bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs" />
+                <button onclick="placePolymarketBet('${p.id}','A')" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Bet: ${escapeHtml(p.optA)}</button>
+                <button onclick="placePolymarketBet('${p.id}','B')" class="px-3.5 py-2 rounded-xl bg-pink-600 text-white text-xs font-bold">Bet: ${escapeHtml(p.optB)}</button>
+                <div class="ml-auto flex gap-1.5">
+                  <button onclick="resolvePolymarketPoll('${p.id}','A')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-[11px] font-bold">Win: ${escapeHtml(p.optA)}</button>
+                  <button onclick="resolvePolymarketPoll('${p.id}','B')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-[11px] font-bold">Win: ${escapeHtml(p.optB)}</button>
+                </div>
+              </div>`}
+          </div>`;
+      }).join('');
+    }
+
+    // -------------------- JOINT REMINDERS & CALENDAR --------------------
+    window.addJointReminder = async function () {
+      const title = document.getElementById('reminder-title-input').value.trim();
+      const due = document.getElementById('reminder-due-input').value;
+      if (!title) return;
+      const item = {
+        title,
+        due: due || 'No deadline',
+        completed: false,
+        createdAt: Date.now(),
+        createdLabel: new Date().toLocaleString(),
+        finishedLabel: null,
+        author: state.myRole
+      };
+      document.getElementById('reminder-title-input').value = '';
+      if (db && currentUserAuth) {
+        await addDoc(colRef('reminders'), item);
+      } else {
+        item.id = 'rem_' + Date.now();
+        state.reminders.unshift(item);
+        renderReminders();
+      }
+    };
+
+    window.toggleJointReminder = async function (id) {
+      const item = state.reminders.find(r => r.id === id);
+      if (!item) return;
+      item.completed = !item.completed;
+      item.finishedLabel = item.completed ? new Date().toLocaleString() : null;
+      if (db && currentUserAuth) {
+        await updateDoc(docRef('reminders', id), { completed: item.completed, finishedLabel: item.finishedLabel });
+      }
+      renderReminders();
+    };
+
+    function renderReminders() {
+      document.getElementById('reminders-list').innerHTML = state.reminders.map(r => `
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-start gap-3">
+          <input type="checkbox" ${r.completed ? 'checked' : ''} onchange="toggleJointReminder('${r.id}')" class="mt-1 w-5 h-5 accent-blue-600 rounded cursor-pointer" />
+          <div class="flex-1 text-xs space-y-1">
+            <p class="text-sm font-bold ${r.completed ? 'line-through opacity-50' : ''}">• ${escapeHtml(r.title)}</p>
+            <div class="flex flex-wrap gap-3 text-slate-400">
+              <span><i class="fa-regular fa-clock mr-1"></i>Due: ${r.due}</span>
+              <span>Created (${r.author}): ${r.createdLabel}</span>
+              ${r.finishedLabel ? `<span class="text-emerald-400 font-semibold">✓ Finished: ${r.finishedLabel}</span>` : ''}
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    window.changeCalendarMonth = function (delta) {
+      state.calMonth += delta;
+      if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+      if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+      renderCalendar();
+    };
+
+    window.addCalendarEvent = function () {
+      const date = document.getElementById('cal-event-date').value;
+      const title = document.getElementById('cal-event-title').value.trim();
+      if (!date || !title) return;
+      state.calendarEvents.push({ id: 'ev_' + Date.now(), date, title: `${title} (${state.myRole})` });
+      document.getElementById('cal-event-title').value = '';
+      saveCoreState();
+      renderCalendar();
+    };
+
+    function renderCalendar() {
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('calendar-month-title').textContent = `${monthNames[state.calMonth]} ${state.calYear}`;
+
+      const firstDay = new Date(state.calYear, state.calMonth, 1).getDay();
+      const daysInMonth = new Date(state.calYear, state.calMonth + 1, 0).getDate();
+      let cells = '';
+      for (let i = 0; i < firstDay; i++) cells += `<div></div>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const iso = `${state.calYear}-${String(state.calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const hasEv = state.calendarEvents.some(e => e.date === iso);
+        cells += `<div class="aspect-square rounded-xl border ${hasEv ? 'border-rose-500 bg-rose-500/15 font-bold text-rose-400' : 'border-slate-200 dark:border-slate-800'} flex flex-col items-center justify-center text-xs">
+          <span>${d}</span>
+          ${hasEv ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 mt-0.5"></span>' : ''}
+        </div>`;
+      }
+      document.getElementById('calendar-grid').innerHTML = cells;
+      document.getElementById('calendar-events-list').innerHTML = state.calendarEvents.map(e => `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
+          <span class="font-bold text-rose-400">${e.date}</span>
+          <span>${escapeHtml(e.title)}</span>
+        </div>`).join('');
+    }
+
+    // -------------------- COLLABORATIVE CANVAS & SAVED DRAWINGS --------------------
+    window.setCanvasTool = function (tool) {
+      state.canvasTool = tool;
+      ['brush', 'eraser', 'fill'].forEach(t => {
+        document.getElementById(`tool-${t}`).className = t === tool
+          ? 'px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold'
+          : 'px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold';
+      });
+    };
+
+    function resizeSharedCanvas() {
+      const wrap = document.getElementById('shared-canvas-wrapper');
+      const canvas = document.getElementById('shared-canvas');
+      if (!wrap || !canvas) return;
+      const temp = canvas.toDataURL();
+      canvas.width = wrap.clientWidth || 600;
+      canvas.height = wrap.clientHeight || 400;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      loadDataUrlToCanvas(temp);
+    }
+
+    function loadDataUrlToCanvas(dataUrl) {
+      const canvas = document.getElementById('shared-canvas');
+      if (!canvas || !dataUrl || dataUrl === 'data:,') return;
+      const img = new Image();
+      img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      img.src = dataUrl;
+    }
+
+    window.clearSharedCanvas = function (broadcast = false) {
+      const canvas = document.getElementById('shared-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (broadcast) syncSharedDoc('live_canvas', { dataUrl: canvas.toDataURL() });
+    };
+
+    function setupCanvasEvents() {
+      const canvas = document.getElementById('shared-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: Math.floor(clientX - rect.left), y: Math.floor(clientY - rect.top) };
+      };
+
+      const start = (e) => {
+        const { x, y } = getPos(e);
+        if (state.canvasTool === 'fill') {
+          floodFillCanvas(canvas, x, y, document.getElementById('canvas-color-picker').value);
+          syncSharedDoc('live_canvas', { dataUrl: canvas.toDataURL() });
+          return;
+        }
+        state.isDrawing = true;
+        state.lastX = x;
+        state.lastY = y;
+      };
+
+      const move = (e) => {
+        if (!state.isDrawing) return;
+        e.preventDefault();
+        const { x, y } = getPos(e);
+        ctx.strokeStyle = state.canvasTool === 'eraser' ? '#ffffff' : document.getElementById('canvas-color-picker').value;
+        ctx.lineWidth = document.getElementById('canvas-brush-size').value;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(state.lastX, state.lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        state.lastX = x;
+        state.lastY = y;
+      };
+
+      const end = () => {
+        if (!state.isDrawing) return;
+        state.isDrawing = false;
+        syncSharedDoc('live_canvas', { dataUrl: canvas.toDataURL() });
+      };
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', end);
+      canvas.addEventListener('touchstart', start, { passive: false });
+      canvas.addEventListener('touchmove', move, { passive: false });
+      canvas.addEventListener('touchend', end);
+    }
+
+    function floodFillCanvas(canvas, startX, startY, hexColor) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      const idx = (startY * w + startX) * 4;
+      const sr = data[idx], sg = data[idx + 1], sb = data[idx + 2];
+
+      const fr = parseInt(hexColor.slice(1, 3), 16);
+      const fg = parseInt(hexColor.slice(3, 5), 16);
+      const fb = parseInt(hexColor.slice(5, 7), 16);
+      if (sr === fr && sg === fg && sb === fb) return;
+
+      const stack = [[startX, startY]];
+      while (stack.length) {
+        const [x, y] = stack.pop();
+        if (x < 0 || x >= w || y < 0 || y >= h) continue;
+        const p = (y * w + x) * 4;
+        if (Math.abs(data[p] - sr) < 25 && Math.abs(data[p + 1] - sg) < 25 && Math.abs(data[p + 2] - sb) < 25) {
+          data[p] = fr; data[p + 1] = fg; data[p + 2] = fb; data[p + 3] = 255;
+          stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    window.saveDrawingToGallery = async function () {
+      const canvas = document.getElementById('shared-canvas');
+      const entry = {
+        dataUrl: canvas.toDataURL('image/png'),
+        createdDate: new Date().toLocaleString(),
+        createdAt: Date.now(),
+        artist: state.myRole
+      };
+      if (db && currentUserAuth) {
+        await addDoc(colRef('saved_drawings'), entry);
+      } else {
+        entry.id = 'drw_' + Date.now();
+        state.savedDrawings.unshift(entry);
+        renderSavedDrawings();
+      }
+      showToast('🎨 Drawing saved to Saved Drawings!');
+    };
+
+    window.continueSavedDrawing = function (id) {
+      const item = state.savedDrawings.find(d => d.id === id);
+      if (!item) return;
+      switchView('canvas');
+      setTimeout(() => {
+        loadDataUrlToCanvas(item.dataUrl);
+        syncSharedDoc('live_canvas', { dataUrl: item.dataUrl });
+      }, 80);
+    };
+
+    function renderSavedDrawings() {
+      const grid = document.getElementById('saved-drawings-grid');
+      grid.innerHTML = state.savedDrawings.length
+        ? state.savedDrawings.map(d => `
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-3 border border-slate-200 dark:border-slate-800 space-y-2">
+            <img src="${d.dataUrl}" class="w-full h-40 object-contain bg-white rounded-2xl border border-slate-200" />
+            <div class="text-[11px] text-slate-400">Created: ${d.createdDate}</div>
+            <div class="flex gap-2">
+              <button onclick="continueSavedDrawing('${d.id}')" class="flex-1 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold">Continue</button>
+              <a href="${d.dataUrl}" download="cleo-keona-art.png" class="flex-1 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold text-center">Download</a>
+            </div>
+          </div>`).join('')
+        : '<p class="text-slate-400 text-sm col-span-full text-center py-8">No saved drawings yet. Draw on the Collaborative Canvas and click Save!</p>';
+    }
+
+    // -------------------- BOOTSTRAP ON WINDOW LOAD --------------------
+    window.onload = async function () {
+      setupCanvasEvents();
+      await initFirebase();
+    };
+  </script>
+</body>
+</html>
